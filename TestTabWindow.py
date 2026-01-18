@@ -43,11 +43,19 @@ class Program(QWidget):
         self.v_enualayout.addWidget(self.TextBoxResult1)
         self.v_enualayout.addWidget(self.TextBoxResult2)
 
-        self.v_textlayout.addWidget(TextWidget())
+        self.TextWidget = TextWidget()
+        self.v_textlayout.addWidget(self.TextWidget)
 
-        self.v_settingslayout.addWidget(SettingsTab())
-        self.v_settingslayout.addWidget(GenButtons())
+        self.SettingsTab = SettingsTab()
+        self.v_settingslayout.addWidget(self.SettingsTab)
 
+        self.GenButtons = GenButtons()
+        self.v_settingslayout.addWidget(self.GenButtons)
+
+        self.GenButtons.button1.clicked.connect(self.Test)
+
+    def Test(self):
+        self.TextBoxResult1.enText.setText(self.TextWidget.GeneralText.toPlainText())
 
 class ResultWidget(QWidget):
     def __init__(self):
