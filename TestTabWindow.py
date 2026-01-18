@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import \
     QGroupBox
 from PyQt6.uic.properties import \
     QtWidgets
+import Func
 
 
 
@@ -51,6 +52,11 @@ class Program(QWidget):
 
         self.GenButtons = GenButtons()
         self.v_settingslayout.addWidget(self.GenButtons)
+
+        self.but = self.GenButtons.buttons()
+        self.but[0].clicked.connect(lambda: Func.test(self))
+
+
 
     def get_text_widget(self):
         return self.TextWidget
