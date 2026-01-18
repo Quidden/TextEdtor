@@ -52,6 +52,7 @@ class Program(QWidget):
 class ResultWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.resultText = ''
         self.text = ''
         self.box = QGroupBox(self.text)
         self.v_layout = QVBoxLayout()
@@ -66,6 +67,9 @@ class ResultWidget(QWidget):
 
         self.techButton.setVisible(False)
         self.techButton2.setVisible(False)
+
+        #Test
+        self.enText.setText(self.resultText)
 
         self.v_layout.addWidget(self.enText)
         self.v_layout.addLayout(self.h_layout)
@@ -97,6 +101,7 @@ class TextWidget(QWidget):
         self.v_layout.addWidget(self.imageBox)
 
         self.GeneralText = QTextEdit()
+        self.text = self.GeneralText.toPlainText()
         self.v_layout.addWidget(self.GeneralText)
 
 
