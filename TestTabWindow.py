@@ -52,10 +52,16 @@ class Program(QWidget):
         self.GenButtons = GenButtons()
         self.v_settingslayout.addWidget(self.GenButtons)
 
-        self.GenButtons.button1.clicked.connect(self.Test)
+    def get_text_widget(self):
+        return self.TextWidget
 
-    def Test(self):
-        self.TextBoxResult1.enText.setText(self.TextWidget.GeneralText.toPlainText())
+    def get_text_box_result1(self):
+        return self.TextBoxResult1
+
+    def get_text_box_result2(self):
+        return self.TextBoxResult2
+
+
 
 class ResultWidget(QWidget):
     def __init__(self):
@@ -89,6 +95,21 @@ class ResultWidget(QWidget):
         self.setLayout(self.mainlayout)
         self.mainlayout.addWidget(self.box)
 
+    def get_text(self):
+        return self.enText.toPlainText()
+    def set_text(self, text):
+        self.enText.setPlainText(text)
+
+    def get_copy_button(self):
+        return self.copyButton
+
+    def get_tech_button(self):
+        return self.techButton
+
+    def get_tech_button2(self):
+        return self.techButton2
+
+
 
 class TextWidget(QWidget):
     def __init__(self):
@@ -98,13 +119,13 @@ class TextWidget(QWidget):
         self.box.setLayout(self.v_layout)
 
         self.imageBox = QGroupBox("Image DropBox")
-        imageLayout = QVBoxLayout(self.imageBox)
+        self.imageLayout = QVBoxLayout(self.imageBox)
 
         self.image = QLabel()
         self.image.setMinimumHeight(150)
         self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image.setText('Preview')
-        imageLayout.addWidget(self.image)
+        self.imageLayout.addWidget(self.image)
 
         self.v_layout.addWidget(self.imageBox)
 
@@ -116,6 +137,16 @@ class TextWidget(QWidget):
         self.mainlayout = QVBoxLayout()
         self.setLayout(self.mainlayout)
         self.mainlayout.addWidget(self.box)
+
+    def get_general_text(self):
+        return self.GeneralText.toPlainText()
+    def set_general_text(self, text):
+        self.GeneralText.setPlainText(text)
+
+    def get_image(self):
+        return self.image
+    def set_image(self, pixmap):
+        self.image.setPixmap(pixmap)
 
 
 
@@ -144,16 +175,17 @@ class GenButtons(QWidget):
         self.setLayout(self.mainlayout)
         self.mainlayout.addWidget(self.box)
 
+    def buttons(self):
+        return self.button1, self.button2, self.button3, self.button4, self.button5, self.button6
+
 
 class ImageResult(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Внешняя рамка секции
         self.box = QGroupBox("Convert")
         box_layout = QVBoxLayout(self.box)
 
-        # Внутренняя рамка только для картинки
         self.boxImage = QGroupBox("Image result")
         image_layout = QVBoxLayout(self.boxImage)
 
@@ -162,10 +194,8 @@ class ImageResult(QWidget):
         self.imageresult.setAlignment(Qt.AlignmentFlag.AlignCenter)
         image_layout.addWidget(self.imageresult)
 
-        # Добавляем внутренний groupbox в внешний
         box_layout.addWidget(self.boxImage)
 
-        # Панель управления (формат + кнопка)
         controls = QHBoxLayout()
         self.combobox = QComboBox()
         self.combobox.addItems(["WebP", "PNG", "JPEG"])
@@ -175,9 +205,19 @@ class ImageResult(QWidget):
         controls.addWidget(self.resButton)
         box_layout.addLayout(controls)
 
-        # Layout для самого виджета ImageResult
         mainlayout = QVBoxLayout(self)
         mainlayout.addWidget(self.box)
+
+    def set_image(self, pixmap):
+        self.imageresult.setPixmap(pixmap)
+    def get_image(self):
+        return self.imageresult
+
+    def get_res_button(self):
+        return self.resButton
+
+    def get_combobox(self):
+        return self.combobox
 
 class SettingsTab(QWidget):
     def __init__(self):
@@ -188,11 +228,35 @@ class SettingsTab(QWidget):
         self.box.setLayout(self.v_layout)
 
         self.tabWidget = QTabWidget()
-        self.tabWidget.addTab(QTextEdit(), "Black list")
-        self.tabWidget.addTab(QTextEdit(), "Settings")
-        self.tabWidget.addTab(QTextEdit(), "Log")
+        self.blackList = QTextEdit()
+        self.tabWidget.addTab(self.blackList, "Black list")
+        self.settings = QTextEdit()
+        self.tabWidget.addTab(self.settings, "Settings")
+        self.log = QTextEdit()
+        self.tabWidget.addTab(self.log, "Log")
         self.v_layout.addWidget(self.tabWidget)
 
         self.mainlayout = QVBoxLayout()
         self.setLayout(self.mainlayout)
         self.mainlayout.addWidget(self.box)
+
+    def get_tab_widget(self):
+        return self.tabWidget
+    def get_box(self):
+        return self.box
+
+    def get_black_list(self):
+        return self.blackList
+    def set_black_list(self, text):
+        self.blackList.setPlainText(text)
+
+    def get_settings(self):
+        return self.settings
+    def set_settings(self, text):
+        self.settings.setPlainText(text)
+
+    def get_log(self):
+        return self.log
+    def set_log(self, text):
+        self.log.setPlainText(text)
+
