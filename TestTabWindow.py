@@ -13,7 +13,9 @@ from PyQt6.QtWidgets import \
     QTabWidget, \
     QComboBox, \
     QGroupBox, \
-    QLineEdit
+    QLineEdit, \
+    QListView, \
+    QListWidget
 from PyQt6.uic.properties import \
     QtWidgets
 import Func
@@ -235,7 +237,14 @@ class SettingsTab(QWidget):
         self.box.setLayout(self.v_layout)
 
         self.tabWidget = QTabWidget()
-        self.blackList = QTextEdit()
+        #self.blackList = QTextEdit()
+        self.b_list = QListWidget()
+
+        self.b_list.addItem("test")
+        self.b_list.addItem("test")
+        self.b_list.addItem("test")
+        self.b_list.addItem("test")
+
         self.refresh_button = QPushButton("Refresh")
         self.delete_item = QPushButton("Delete")
         self.h_button_layout = QHBoxLayout()
@@ -244,7 +253,7 @@ class SettingsTab(QWidget):
 
         self.v2_widget = QWidget()
         self.v2_layout = QVBoxLayout(self.v2_widget)
-        self.v2_layout.addWidget(self.blackList)
+        self.v2_layout.addWidget(self.b_list)
         self.v2_layout.addLayout(self.h_button_layout)
 
         self.second_box = QGroupBox("Black list add item tab")
@@ -285,9 +294,11 @@ class SettingsTab(QWidget):
         return self.box
 
     def get_black_list(self):
-        return self.blackList
-    def set_black_list(self, text):
-        self.blackList.setPlainText(text)
+        return self.b_list
+    def add_black_list_item(self, text):
+        self.b_list.addItem(text)
+    def clear_black_list(self):
+        self.b_list.clear()
 
     def get_settings(self):
         return self.settings
@@ -299,3 +310,12 @@ class SettingsTab(QWidget):
     def set_log(self, text):
         self.log.setPlainText(text)
 
+    def get_refresh_button(self):
+        return self.refresh_button
+
+    def get_black_list_item(self):
+        return self.black_list_item
+    def get_white_list_item(self):
+        return self.white_list_item
+    def get_confirm_button(self):
+        return self.confirm_button
