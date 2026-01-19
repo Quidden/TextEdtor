@@ -238,12 +238,18 @@ class SettingsTab(QWidget):
         self.blackList = QTextEdit()
         self.refresh_button = QPushButton("Refresh")
         self.delete_item = QPushButton("Delete")
+        self.h_button_layout = QHBoxLayout()
+        self.h_button_layout.addWidget(self.refresh_button)
+        self.h_button_layout.addWidget(self.delete_item)
 
         self.v2_widget = QWidget()
         self.v2_layout = QVBoxLayout(self.v2_widget)
         self.v2_layout.addWidget(self.blackList)
-        self.v2_layout.addWidget(self.refresh_button)
+        self.v2_layout.addLayout(self.h_button_layout)
 
+        self.second_box = QGroupBox("Black list add item tab")
+        self.v3_layout = QVBoxLayout()
+        #self.v2_layout.addLayout(self.v3_layout)
         self.h2_layout = QHBoxLayout()
         self.black_list_item = QLineEdit()
         self.black_list_item.setPlaceholderText("Blacklist Item")
@@ -253,10 +259,13 @@ class SettingsTab(QWidget):
         self.h2_layout.addWidget(self.black_list_item)
         self.h2_layout.addWidget(QLabel("->"))
         self.h2_layout.addWidget(self.white_list_item)
-        self.v2_layout.addLayout(self.h2_layout)
+        self.v3_layout.addLayout(self.h2_layout)
 
         self.confirm_button = QPushButton("Confirm")
-        self.v2_layout.addWidget(self.confirm_button)
+        self.v3_layout.addWidget(self.confirm_button)
+
+        self.second_box.setLayout(self.v3_layout)
+        self.v2_layout.addWidget(self.second_box)
 
         self.tabWidget.addTab(self.v2_widget, "Black list")
 
