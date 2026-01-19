@@ -12,7 +12,8 @@ from PyQt6.QtWidgets import \
     QLabel, \
     QTabWidget, \
     QComboBox, \
-    QGroupBox
+    QGroupBox, \
+    QLineEdit
 from PyQt6.uic.properties import \
     QtWidgets
 import Func
@@ -235,7 +236,30 @@ class SettingsTab(QWidget):
 
         self.tabWidget = QTabWidget()
         self.blackList = QTextEdit()
-        self.tabWidget.addTab(self.blackList, "Black list")
+        self.refresh_button = QPushButton("Refresh")
+        self.delete_item = QPushButton("Delete")
+
+        self.v2_widget = QWidget()
+        self.v2_layout = QVBoxLayout(self.v2_widget)
+        self.v2_layout.addWidget(self.blackList)
+        self.v2_layout.addWidget(self.refresh_button)
+
+        self.h2_layout = QHBoxLayout()
+        self.black_list_item = QLineEdit()
+        self.black_list_item.setPlaceholderText("Blacklist Item")
+        self.white_list_item = QLineEdit()
+        self.white_list_item.setPlaceholderText("Whitelist Item")
+
+        self.h2_layout.addWidget(self.black_list_item)
+        self.h2_layout.addWidget(QLabel("->"))
+        self.h2_layout.addWidget(self.white_list_item)
+        self.v2_layout.addLayout(self.h2_layout)
+
+        self.confirm_button = QPushButton("Confirm")
+        self.v2_layout.addWidget(self.confirm_button)
+
+        self.tabWidget.addTab(self.v2_widget, "Black list")
+
         self.settings = QTextEdit()
         self.tabWidget.addTab(self.settings, "Settings")
         self.log = QTextEdit()
