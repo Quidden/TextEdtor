@@ -17,6 +17,10 @@ def black_list_load(*, black_list: str, white_list: str):
     with open("black_list.json", "r") as read_file:
         temp = json.load(read_file)
 
+    for item in temp:
+        if item["black_list"] == black_list:
+            return False
+
     id = len(temp)
 
     item = {"id": id, "black_list": black_list, "white_list": white_list}
@@ -28,10 +32,17 @@ def black_list_load(*, black_list: str, white_list: str):
     with open("black_list.json", "w") as outfile:
         outfile.write(json_object)
 
+    return True
+
     for tems in temp:
         print(tems)
 
 
+def get_black_list_items():
+    if not os.path.exists("black_list.json"):
+        return []
+    with open("black_list.json", "r") as read_file:
+        temp = json.load(read_file)
+    return temp
 
-black_list_load(black_list="123423sfdgsdfgsdfg", white_list="45a34242sd6")
 

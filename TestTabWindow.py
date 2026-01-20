@@ -15,11 +15,14 @@ from PyQt6.QtWidgets import \
     QGroupBox, \
     QLineEdit, \
     QListView, \
-    QListWidget
+    QListWidget, \
+    QMessageBox
 from PyQt6.uic.properties import \
     QtWidgets
 import Func
-
+from Func import \
+    black_list_load, \
+    get_black_list_items
 
 
 class Program(QWidget):
@@ -53,13 +56,35 @@ class Program(QWidget):
         self.SettingsTab = SettingsTab()
         self.v_settingslayout.addWidget(self.SettingsTab)
 
+        def bl_list_func():
+
+            if not black_list_load(
+                    black_list=self.SettingsTab.black_list_item.text(),
+                    white_list=self.SettingsTab.white_list_item.text()):
+                self.msg_box = QMessageBox()
+                self.setWindowTitle("Error")
+                self.msg_box.setText("Replace")
+                self.msg_box.setIcon(QMessageBox.Icon.Critical)
+                self.msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+                if self.msg_box.exec() == QMessageBox.StandardButton.Ok:
+                    return
+
+            black_list_load(
+                black_list=self.SettingsTab.black_list_item.text(),
+                white_list=self.SettingsTab.white_list_item.text())
+            self.SettingsTab.clear_black_list()
+            for item in get_black_list_items():
+                res = 'id:' + str(item['id']) + ' - ' + str(item['black_list']) + ' -> ' + str(item['white_list'])
+                self.SettingsTab.add_black_list_item(str(res))
+
+        self.SettingsTab.confirm_button.clicked.connect(lambda : bl_list_func())
+
         self.GenButtons = GenButtons()
         self.v_settingslayout.addWidget(self.GenButtons)
 
         self.but = self.GenButtons.buttons()
         self.but[0].clicked.connect(lambda: Func.test(self))
-
-
 
     def get_text_widget(self):
         return self.TextWidget
@@ -240,10 +265,9 @@ class SettingsTab(QWidget):
         #self.blackList = QTextEdit()
         self.b_list = QListWidget()
 
-        self.b_list.addItem("test")
-        self.b_list.addItem("test")
-        self.b_list.addItem("test")
-        self.b_list.addItem("test")
+        for item in get_black_list_items():
+            res = 'id:' + str(item['id']) + ' - ' + str(item['black_list']) + ' -> ' + str(item['white_list'])
+            self.b_list.addItem(str(res))
 
         self.refresh_button = QPushButton("Refresh")
         self.delete_item = QPushButton("Delete")
