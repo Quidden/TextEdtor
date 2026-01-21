@@ -66,4 +66,11 @@ def refresh_black_list():
         result.append(res)
     return result
 
-print(refresh_black_list())
+def accept_black_list(text: str):
+    white_text = text
+    for item in get_black_list_items():
+        if item['black_list'] in text:
+            white_text = white_text.replace(item['black_list'], item['white_list'])
+    return white_text
+
+

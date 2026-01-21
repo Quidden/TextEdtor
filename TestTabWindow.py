@@ -85,8 +85,11 @@ class Program(QWidget):
         self.GenButtons = GenButtons()
         self.v_settingslayout.addWidget(self.GenButtons)
 
+        def replace_text():
+            self.TextBoxResult1.set_text(Func.accept_black_list(self.TextWidget.get_general_text()))
+
         self.but = self.GenButtons.buttons()
-        self.but[0].clicked.connect(lambda: Func.test(self))
+        self.but[0].clicked.connect(lambda: replace_text())
 
     def get_text_widget(self):
         return self.TextWidget
@@ -166,6 +169,7 @@ class TextWidget(QWidget):
         self.v_layout.addWidget(self.imageBox)
 
         self.GeneralText = QTextEdit()
+        self.GeneralText.setAcceptRichText(False)
         self.text = self.GeneralText.toPlainText()
         self.v_layout.addWidget(self.GeneralText)
 
@@ -193,7 +197,7 @@ class GenButtons(QWidget):
         self.v_layout = QVBoxLayout()
         self.box.setLayout(self.v_layout)
 
-        self.button1 = QPushButton("Button1")
+        self.button1 = QPushButton("Accept black list")
         self.button2 = QPushButton("Button2")
         self.button3 = QPushButton("Button3")
         self.button4 = QPushButton("Button4")
@@ -274,6 +278,8 @@ class SettingsTab(QWidget):
 
         self.refresh_button = QPushButton("Refresh")
         self.delete_item = QPushButton("Delete")
+        self.refresh_button.setVisible(False)
+        self.delete_item.setVisible(False)
         self.h_button_layout = QHBoxLayout()
         self.h_button_layout.addWidget(self.refresh_button)
         self.h_button_layout.addWidget(self.delete_item)
