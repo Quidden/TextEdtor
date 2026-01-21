@@ -16,13 +16,16 @@ from PyQt6.QtWidgets import \
     QLineEdit, \
     QListView, \
     QListWidget, \
-    QMessageBox
+    QMessageBox, \
+    QMenu
 from PyQt6.uic.properties import \
     QtWidgets
 import Func
 from Func import \
     black_list_load, \
-    get_black_list_items
+    get_black_list_items, \
+    black_list_item_delete, \
+    refresh_black_list
 
 
 class Program(QWidget):
@@ -74,9 +77,8 @@ class Program(QWidget):
                 black_list=self.SettingsTab.black_list_item.text(),
                 white_list=self.SettingsTab.white_list_item.text())
             self.SettingsTab.clear_black_list()
-            for item in get_black_list_items():
-                res = 'id:' + str(item['id']) + ' - ' + str(item['black_list']) + ' -> ' + str(item['white_list'])
-                self.SettingsTab.add_black_list_item(str(res))
+            for item in refresh_black_list():
+                self.SettingsTab.add_black_list_item(str(item))
 
         self.SettingsTab.confirm_button.clicked.connect(lambda : bl_list_func())
 
@@ -265,9 +267,10 @@ class SettingsTab(QWidget):
         #self.blackList = QTextEdit()
         self.b_list = QListWidget()
 
-        for item in get_black_list_items():
-            res = 'id:' + str(item['id']) + ' - ' + str(item['black_list']) + ' -> ' + str(item['white_list'])
-            self.b_list.addItem(str(res))
+        for item in refresh_black_list():
+            self.b_list.addItem(str(item))
+        self.b_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.b_list.customContextMenuRequested.connect(self.open_menu)
 
         self.refresh_button = QPushButton("Refresh")
         self.delete_item = QPushButton("Delete")
@@ -311,6 +314,21 @@ class SettingsTab(QWidget):
         self.mainlayout = QVBoxLayout()
         self.setLayout(self.mainlayout)
         self.mainlayout.addWidget(self.box)
+
+    def open_menu(self, position):
+        item = self.b_list.itemAt(position)
+
+        menu = QMenu(self)
+
+        delete = menu.addAction("Delete")
+        action = menu.exec(self.b_list.mapToGlobal(position))
+        if action == delete:
+            black_list_item_delete(self.b_list.row(item))
+            self.clear_black_list()
+            for item in refresh_black_list():
+                self.b_list.addItem(str(item))
+
+
 
     def get_tab_widget(self):
         return self.tabWidget
