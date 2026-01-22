@@ -25,7 +25,8 @@ from Func import \
     black_list_load, \
     get_black_list_items, \
     black_list_item_delete, \
-    refresh_black_list
+    refresh_black_list, \
+    text_division
 
 
 class Program(QWidget):
@@ -46,12 +47,11 @@ class Program(QWidget):
         self.h_layout.addLayout(self.v_settingslayout, 2)
 
         self.v_enualayout.addWidget(ImageResult())
-        self.TextBoxResult1 = ResultWidget()
-        self.TextBoxResult1.box.setTitle('EN Text')
-        self.TextBoxResult2 = ResultWidget()
-        self.TextBoxResult2.box.setTitle('UKR Text')
-        self.v_enualayout.addWidget(self.TextBoxResult1)
-        self.v_enualayout.addWidget(self.TextBoxResult2)
+
+        # self.TextBoxResult = ResultWidget()
+        # self.TextBoxResult.box.setTitle('EN Text')
+        # self.v_enualayout.addWidget(self.TextBoxResult)
+
 
         self.TextWidget = TextWidget()
         self.v_textlayout.addWidget(self.TextWidget)
@@ -85,21 +85,24 @@ class Program(QWidget):
         self.GenButtons = GenButtons()
         self.v_settingslayout.addWidget(self.GenButtons)
 
-        def replace_text():
-            self.TextBoxResult1.set_text(Func.accept_black_list(self.TextWidget.get_general_text()))
-
         self.but = self.GenButtons.buttons()
-        self.but[0].clicked.connect(lambda: replace_text())
+        self.but[0].clicked.connect(lambda: self.replace_text())
+        self.but[1].clicked.connect(lambda: self.text_division_result())
+
+    def replace_text(self):
+        self.TextWidget.set_general_text(Func.accept_black_list(self.TextWidget.get_general_text()))
 
     def get_text_widget(self):
         return self.TextWidget
 
-    def get_text_box_result1(self):
-        return self.TextBoxResult1
-
-    def get_text_box_result2(self):
-        return self.TextBoxResult2
-
+    def text_division_result(self):
+        for bx in self.findChildren(ResultWidget):
+            bx.setParent(None)
+            bx.deleteLater()
+        for text_block in text_division(self.TextWidget.get_general_text()):
+            result_box = ResultWidget()
+            result_box.set_text(text_block)
+            self.v_enualayout.addWidget(result_box)
 
 
 class ResultWidget(QWidget):

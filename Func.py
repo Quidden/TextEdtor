@@ -73,4 +73,8 @@ def accept_black_list(text: str):
             white_text = white_text.replace(item['black_list'], item['white_list'])
     return white_text
 
+def text_division(text: str):
+    text_list = text.split('=====')
+    return text_list
+
 
