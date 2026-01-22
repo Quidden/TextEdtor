@@ -57,20 +57,21 @@ def get_black_list_items():
     return temp
 
 def refresh_black_list():
-    result = []
-
-    for item in get_black_list_items():
-        res = ('id:' + str(item['id']) +
+    refreshed_list = [('id:' + str(item['id']) +
                ': (' + str(item['black_list']) +
                ') -> (' + str(item['white_list'] + ')'))
-        result.append(res)
-    return result
+                      for item in get_black_list_items()]
+    return refreshed_list
 
 def accept_black_list(text: str):
     white_text = text
     for item in get_black_list_items():
         if item['black_list'] in text:
             white_text = white_text.replace(item['black_list'], item['white_list'])
+
+    lines = white_text.split('\n')
+    lines = [line.lstrip() for line in lines]
+    white_text = '\n'.join(lines)
     return white_text
 
 def text_division(text: str):
