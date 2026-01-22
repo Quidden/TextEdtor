@@ -1,8 +1,11 @@
-
+from TestTabWindow import *
 import json
 import os
 from unittest import \
     result
+
+import \
+    TestTabWindow
 
 
 def test(program):
@@ -63,15 +66,16 @@ def refresh_black_list():
                       for item in get_black_list_items()]
     return refreshed_list
 
-def accept_black_list(text: str):
+def accept_black_list(text: str, cbx: bool):
     white_text = text
     for item in get_black_list_items():
         if item['black_list'] in text:
             white_text = white_text.replace(item['black_list'], item['white_list'])
 
-    lines = white_text.split('\n')
-    lines = [line.lstrip() for line in lines]
-    white_text = '\n'.join(lines)
+    if cbx:
+        lines = white_text.split('\n')
+        lines = [line.lstrip() for line in lines]
+        white_text = '\n'.join(lines)
     return white_text
 
 def text_division(text: str):

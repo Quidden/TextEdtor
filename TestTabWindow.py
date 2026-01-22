@@ -17,7 +17,8 @@ from PyQt6.QtWidgets import \
     QListView, \
     QListWidget, \
     QMessageBox, \
-    QMenu
+    QMenu, \
+    QCheckBox
 from PyQt6.uic.properties import \
     QtWidgets
 import Func
@@ -90,7 +91,8 @@ class Program(QWidget):
         self.but[1].clicked.connect(lambda: self.text_division_result())
 
     def replace_text(self):
-        self.TextWidget.set_general_text(Func.accept_black_list(self.TextWidget.get_general_text()))
+        self.TextWidget.set_general_text(Func.accept_black_list(
+            self.TextWidget.get_general_text(), self.SettingsTab.get_check_box_text_settings()))
 
     def get_text_widget(self):
         return self.TextWidget
@@ -314,8 +316,12 @@ class SettingsTab(QWidget):
 
         self.tabWidget.addTab(self.v2_widget, "Black list")
 
-        self.settings = QTextEdit()
-        self.tabWidget.addTab(self.settings, "Settings")
+        self.v_settings = QWidget()
+        self.v_settings_layout = QVBoxLayout(self.v_settings)
+        self.v_settings_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.check_box_text_settings = QCheckBox("Text settings")
+        self.v_settings_layout.addWidget(self.check_box_text_settings)
+        self.tabWidget.addTab(self.v_settings, "Settings")
         self.log = QTextEdit()
         self.tabWidget.addTab(self.log, "Log")
         self.v_layout.addWidget(self.tabWidget)
@@ -338,6 +344,8 @@ class SettingsTab(QWidget):
                 self.b_list.addItem(str(item))
 
 
+    def get_check_box_text_settings(self):
+        return self.check_box_text_settings.isChecked()
 
     def get_tab_widget(self):
         return self.tabWidget
