@@ -6,6 +6,7 @@ from unittest import \
 
 import \
     TestTabWindow
+import re
 
 
 def test(program):
@@ -66,7 +67,7 @@ def refresh_black_list():
                       for item in get_black_list_items()]
     return refreshed_list
 
-def accept_black_list(text: str, cbx: bool):
+def accept_black_list(text: str, cbx: bool, el: bool):
     white_text = text
     for item in get_black_list_items():
         if item['black_list'] in text:
@@ -76,7 +77,14 @@ def accept_black_list(text: str, cbx: bool):
         lines = white_text.split('\n')
         lines = [line.lstrip() for line in lines]
         white_text = '\n'.join(lines)
+
+    if el:
+        white_text = re.sub(r'\n\s*\n+', '\n\n', white_text)
+
     return white_text
+
+
+
 
 def text_division(text: str):
     text_list = text.split('=====')

@@ -92,7 +92,9 @@ class Program(QWidget):
 
     def replace_text(self):
         self.TextWidget.set_general_text(Func.accept_black_list(
-            self.TextWidget.get_general_text(), self.SettingsTab.get_check_box_text_settings()))
+            self.TextWidget.get_general_text(),
+            self.SettingsTab.get_check_box_text_settings(),
+            self.SettingsTab.get_check_box_text_empty_settings()))
 
     def get_text_widget(self):
         return self.TextWidget
@@ -320,7 +322,9 @@ class SettingsTab(QWidget):
         self.v_settings_layout = QVBoxLayout(self.v_settings)
         self.v_settings_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.check_box_text_settings = QCheckBox("Text settings")
+        self.check_box_text_empty_settings = QCheckBox("Empty text settings")
         self.v_settings_layout.addWidget(self.check_box_text_settings)
+        self.v_settings_layout.addWidget(self.check_box_text_empty_settings)
         self.tabWidget.addTab(self.v_settings, "Settings")
         self.log = QTextEdit()
         self.tabWidget.addTab(self.log, "Log")
@@ -346,6 +350,8 @@ class SettingsTab(QWidget):
 
     def get_check_box_text_settings(self):
         return self.check_box_text_settings.isChecked()
+    def get_check_box_text_empty_settings(self):
+        return self.check_box_text_empty_settings.isChecked()
 
     def get_tab_widget(self):
         return self.tabWidget
