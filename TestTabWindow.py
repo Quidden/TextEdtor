@@ -145,11 +145,14 @@ class TextWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.box = QGroupBox("General Text Editor")
-        self.v_layout = QVBoxLayout()
-        self.box.setLayout(self.v_layout)
+        self.v_head_box_layout = QVBoxLayout()
+        self.box.setLayout(self.v_head_box_layout)
 
-        self.imageBox = QGroupBox("Image DropBox")
-        self.imageLayout = QVBoxLayout(self.imageBox)
+
+        self.image_box = QGroupBox("Image DropBox")
+        self.imageLayout = QVBoxLayout(self.image_box)
+        self.v_head_box_layout.addWidget(self.image_box)
+
 
         self.image = QLabel()
         self.image.setMinimumHeight(150)
@@ -157,17 +160,15 @@ class TextWidget(QWidget):
         self.image.setText('Preview')
         self.imageLayout.addWidget(self.image)
 
-        self.v_layout.addWidget(self.imageBox)
 
         self.GeneralText = QTextEdit()
         self.GeneralText.setAcceptRichText(False)
         self.text = self.GeneralText.toPlainText()
-        self.v_layout.addWidget(self.GeneralText)
+        self.v_head_box_layout.addWidget(self.GeneralText)
 
-
-        self.mainlayout = QVBoxLayout()
-        self.setLayout(self.mainlayout)
-        self.mainlayout.addWidget(self.box)
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        self.main_layout.addWidget(self.box)
 
     def get_general_text(self):
         return self.GeneralText.toPlainText()
