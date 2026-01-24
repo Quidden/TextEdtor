@@ -83,9 +83,6 @@ def accept_black_list(text: str, cbx: bool, el: bool):
 
     return white_text
 
-
-
-
 def text_division(text: str):
     text_list = text.split('=====')
     return text_list

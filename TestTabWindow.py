@@ -29,7 +29,6 @@ from Func import \
     refresh_black_list, \
     text_division
 
-
 class Program(QWidget):
     def __init__(self):
         super().__init__()
@@ -85,8 +84,8 @@ class Program(QWidget):
     def replace_text(self):
         self.TextWidget.set_general_text(Func.accept_black_list(
             self.TextWidget.get_general_text(),
-            self.SettingsTab.get_check_box_text_settings(),
-            self.SettingsTab.get_check_box_text_empty_settings()))
+            self.SettingsTab.setting_menu.get_check_box_text_settings(),
+            self.SettingsTab.setting_menu.get_check_box_text_empty_settings()))
 
     def get_text_widget(self):
         return self.TextWidget
@@ -201,9 +200,9 @@ class GenButtons(QWidget):
         self.v_layout.addWidget(self.button5)
         self.v_layout.addWidget(self.button6)
 
-        self.mainlayout = QVBoxLayout()
-        self.setLayout(self.mainlayout)
-        self.mainlayout.addWidget(self.box)
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        self.main_layout.addWidget(self.box)
 
     def buttons(self):
         return self.button1, self.button2, self.button3, self.button4, self.button5, self.button6
@@ -257,7 +256,6 @@ class SettingsTab(QWidget):
         self.box.setLayout(self.v_layout)
 
         self.tabWidget = QTabWidget()
-        #self.blackList = QTextEdit()
         self.b_list = QListWidget()
 
         for item in refresh_black_list():
@@ -299,15 +297,8 @@ class SettingsTab(QWidget):
         self.v2_layout.addWidget(self.second_box)
 
         self.tabWidget.addTab(self.v2_widget, "Black list")
-
-        self.v_settings = QWidget()
-        self.v_settings_layout = QVBoxLayout(self.v_settings)
-        self.v_settings_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.check_box_text_settings = QCheckBox("Text settings")
-        self.check_box_text_empty_settings = QCheckBox("Empty text settings")
-        self.v_settings_layout.addWidget(self.check_box_text_settings)
-        self.v_settings_layout.addWidget(self.check_box_text_empty_settings)
-        self.tabWidget.addTab(self.v_settings, "Settings")
+        self.setting_menu = self.SettingMenu()
+        self.tabWidget.addTab(self.setting_menu, "Settings")
         self.log = QTextEdit()
         self.tabWidget.addTab(self.log, "Log")
         self.v_layout.addWidget(self.tabWidget)
@@ -330,11 +321,6 @@ class SettingsTab(QWidget):
                 self.b_list.addItem(str(item))
 
 
-    def get_check_box_text_settings(self):
-        return self.check_box_text_settings.isChecked()
-    def get_check_box_text_empty_settings(self):
-        return self.check_box_text_empty_settings.isChecked()
-
     def get_tab_widget(self):
         return self.tabWidget
     def get_box(self):
@@ -346,11 +332,6 @@ class SettingsTab(QWidget):
         self.b_list.addItem(text)
     def clear_black_list(self):
         self.b_list.clear()
-
-    def get_settings(self):
-        return self.settings
-    def set_settings(self, text):
-        self.settings.setPlainText(text)
 
     def get_log(self):
         return self.log
@@ -366,3 +347,27 @@ class SettingsTab(QWidget):
         return self.white_list_item
     def get_confirm_button(self):
         return self.confirm_button
+
+    class SettingMenu(QWidget):
+        def __init__(self):
+            super().__init__()
+
+            self.box = QGroupBox("Settings")
+            self.v_layout = QVBoxLayout()
+            self.v_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            self.box.setLayout(self.v_layout)
+
+            self.check_box_text_settings = QCheckBox("Text settings")
+            self.v_layout.addWidget(self.check_box_text_settings)
+            self.check_box_text_empty_settings = QCheckBox("Empty text settings")
+            self.v_layout.addWidget(self.check_box_text_empty_settings)
+
+
+            self.v_main_layout = QVBoxLayout()
+            self.v_main_layout.addWidget(self.box)
+            self.setLayout(self.v_main_layout)
+
+        def get_check_box_text_settings(self):
+            return self.check_box_text_settings.isChecked()
+        def get_check_box_text_empty_settings(self):
+            return self.check_box_text_empty_settings.isChecked()
