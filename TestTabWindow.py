@@ -34,61 +34,53 @@ class Program(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.h_layout = QHBoxLayout()
-        self.v_enualayout = QVBoxLayout()
-        self.v_textlayout = QVBoxLayout()
-        self.v_settingslayout = QVBoxLayout()
+        #Head layout to which other layouts are attached
+        self.h_head_layout = QHBoxLayout()
+        self.setLayout(self.h_head_layout)
 
-        self.setLayout(self.h_layout)
+        #The resulting layout with split text and image conversion settings
+        self.v_text_result_layout = QVBoxLayout()
+        self.v_text_result_layout.addWidget(ImageResult())
+        self.h_head_layout.addLayout(self.v_text_result_layout, 2)
 
-        #self.v_settingslayout.addLayout(self.h_layout)
-
-        self.h_layout.addLayout(self.v_enualayout, 2)
-        self.h_layout.addLayout(self.v_textlayout, 4)
-        self.h_layout.addLayout(self.v_settingslayout, 2)
-
-        self.v_enualayout.addWidget(ImageResult())
-
-        # self.TextBoxResult = ResultWidget()
-        # self.TextBoxResult.box.setTitle('EN Text')
-        # self.v_enualayout.addWidget(self.TextBoxResult)
-
-
+        #The main user text layout
+        self.main_text = QVBoxLayout()
         self.TextWidget = TextWidget()
-        self.v_textlayout.addWidget(self.TextWidget)
+        self.main_text.addWidget(self.TextWidget)
+        self.h_head_layout.addLayout(self.main_text, 4)
 
+        #Settings layout includes a custom button widget
+        self.v_settings_layout = QVBoxLayout()
         self.SettingsTab = SettingsTab()
-        self.v_settingslayout.addWidget(self.SettingsTab)
-
-        def bl_list_func():
-
-            if not black_list_load(
-                    black_list=self.SettingsTab.black_list_item.text(),
-                    white_list=self.SettingsTab.white_list_item.text()):
-                self.msg_box = QMessageBox()
-                self.setWindowTitle("Error")
-                self.msg_box.setText("Replace")
-                self.msg_box.setIcon(QMessageBox.Icon.Critical)
-                self.msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-
-                if self.msg_box.exec() == QMessageBox.StandardButton.Ok:
-                    return
-
-            black_list_load(
-                black_list=self.SettingsTab.black_list_item.text(),
-                white_list=self.SettingsTab.white_list_item.text())
-            self.SettingsTab.clear_black_list()
-            for item in refresh_black_list():
-                self.SettingsTab.add_black_list_item(str(item))
-
-        self.SettingsTab.confirm_button.clicked.connect(lambda : bl_list_func())
-
+        self.v_settings_layout.addWidget(self.SettingsTab)
+        self.SettingsTab.confirm_button.clicked.connect(lambda : self.bl_list_func())
         self.GenButtons = GenButtons()
-        self.v_settingslayout.addWidget(self.GenButtons)
-
+        self.v_settings_layout.addWidget(self.GenButtons)
         self.but = self.GenButtons.buttons()
-        self.but[0].clicked.connect(lambda: self.replace_text())
-        self.but[1].clicked.connect(lambda: self.text_division_result())
+        self.but[0].clicked.connect(lambda: self.replace_text()) #func for accept blacklist
+        self.but[1].clicked.connect(lambda: self.text_division_result()) #func for split main text
+        self.h_head_layout.addLayout(self.v_settings_layout, 2)
+
+    def bl_list_func(self):
+
+        if not black_list_load(
+                black_list=self.SettingsTab.black_list_item.text(),
+                white_list=self.SettingsTab.white_list_item.text()):
+            self.msg_box = QMessageBox()
+            self.setWindowTitle("Error")
+            self.msg_box.setText("Replace")
+            self.msg_box.setIcon(QMessageBox.Icon.Critical)
+            self.msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+            if self.msg_box.exec() == QMessageBox.StandardButton.Ok:
+                return
+
+        black_list_load(
+            black_list=self.SettingsTab.black_list_item.text(),
+            white_list=self.SettingsTab.white_list_item.text())
+        self.SettingsTab.clear_black_list()
+        for item in refresh_black_list():
+            self.SettingsTab.add_black_list_item(str(item))
 
     def replace_text(self):
         self.TextWidget.set_general_text(Func.accept_black_list(
@@ -98,7 +90,6 @@ class Program(QWidget):
 
     def get_text_widget(self):
         return self.TextWidget
-
     def text_division_result(self):
         for bx in self.findChildren(ResultWidget):
             bx.setParent(None)
@@ -106,7 +97,7 @@ class Program(QWidget):
         for text_block in text_division(self.TextWidget.get_general_text()):
             result_box = ResultWidget()
             result_box.set_text(text_block)
-            self.v_enualayout.addWidget(result_box)
+            self.v_text_result_layout.addWidget(result_box)
 
 
 class ResultWidget(QWidget):
@@ -155,8 +146,6 @@ class ResultWidget(QWidget):
     def get_tech_button2(self):
         return self.techButton2
 
-
-
 class TextWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -195,8 +184,6 @@ class TextWidget(QWidget):
     def set_image(self, pixmap):
         self.image.setPixmap(pixmap)
 
-
-
 class GenButtons(QWidget):
     def __init__(self):
         super().__init__()
@@ -225,7 +212,6 @@ class GenButtons(QWidget):
     def buttons(self):
         return self.button1, self.button2, self.button3, self.button4, self.button5, self.button6
 
-
 class ImageResult(QWidget):
     def __init__(self):
         super().__init__()
@@ -236,10 +222,10 @@ class ImageResult(QWidget):
         self.boxImage = QGroupBox("Image result")
         image_layout = QVBoxLayout(self.boxImage)
 
-        self.imageresult = QLabel("preview")
-        self.imageresult.setMinimumHeight(150)
-        self.imageresult.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        image_layout.addWidget(self.imageresult)
+        self.image_result = QLabel("preview")
+        self.image_result.setMinimumHeight(150)
+        self.image_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        image_layout.addWidget(self.image_result)
 
         box_layout.addWidget(self.boxImage)
 
@@ -252,13 +238,13 @@ class ImageResult(QWidget):
         controls.addWidget(self.resButton)
         box_layout.addLayout(controls)
 
-        mainlayout = QVBoxLayout(self)
-        mainlayout.addWidget(self.box)
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.box)
 
     def set_image(self, pixmap):
-        self.imageresult.setPixmap(pixmap)
+        self.image_result.setPixmap(pixmap)
     def get_image(self):
-        return self.imageresult
+        return self.image_result
 
     def get_res_button(self):
         return self.resButton
