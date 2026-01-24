@@ -99,52 +99,47 @@ class Program(QWidget):
             result_box.set_text(text_block)
             self.v_text_result_layout.addWidget(result_box)
 
-
 class ResultWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.resultText = ''
-        self.text = ''
-        self.box = QGroupBox(self.text)
-        self.v_layout = QVBoxLayout()
-        self.box.setLayout(self.v_layout)
 
-        self.h_layout = QHBoxLayout()
+        self.box = QGroupBox()
+        self.v_head_box_layout = QVBoxLayout()
+        self.box.setLayout(self.v_head_box_layout)
 
-        self.enText = QTextEdit()
-        self.copyButton = QPushButton("Copy")
-        self.techButton = QPushButton("Tech")
-        self.techButton2 = QPushButton("Tech2")
+        self.h_head_layout = QHBoxLayout()
 
-        self.techButton.setVisible(False)
-        self.techButton2.setVisible(False)
+        self.result_text = QTextEdit()
+        self.v_head_box_layout.addWidget(self.result_text)
+        self.v_head_box_layout.addLayout(self.h_head_layout)
 
-        #Test
-        self.enText.setText(self.resultText)
+        self.copy_button = QPushButton("Copy")
+        self.h_head_layout.addWidget(self.copy_button)
+        self.tech_button = QPushButton("Tech")
+        self.tech_button.setVisible(False)
+        self.h_head_layout.addWidget(self.tech_button)
+        self.tech_button2 = QPushButton("Tech2")
+        self.tech_button2.setVisible(False)
+        self.h_head_layout.addWidget(self.tech_button2)
 
-        self.v_layout.addWidget(self.enText)
-        self.v_layout.addLayout(self.h_layout)
-        self.h_layout.addWidget(self.copyButton)
-        self.h_layout.addWidget(self.techButton)
-        self.h_layout.addWidget(self.techButton2)
-
-        self.mainlayout = QVBoxLayout()
-        self.setLayout(self.mainlayout)
-        self.mainlayout.addWidget(self.box)
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        self.main_layout.addWidget(self.box)
 
     def get_text(self):
-        return self.enText.toPlainText()
+        return self.result_text.toPlainText()
+
     def set_text(self, text):
-        self.enText.setPlainText(text)
+        self.result_text.setPlainText(text)
 
     def get_copy_button(self):
-        return self.copyButton
+        return self.copy_button
 
     def get_tech_button(self):
-        return self.techButton
+        return self.tech_button
 
     def get_tech_button2(self):
-        return self.techButton2
+        return self.tech_button2
 
 class TextWidget(QWidget):
     def __init__(self):
