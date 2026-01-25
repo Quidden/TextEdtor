@@ -1,22 +1,12 @@
 import sys
 
-from PyQt6.QtCore import \
-    Qt
-import TestTabWindow
 from PyQt6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QPushButton,
-    QLabel,
-    QStackedWidget,
-    QCheckBox
+    QMainWindow
 )
 
-from TestTabWindow import \
-    Program
+from src.ui.TestTabWindow import \
+    MainWindowW
 
 
 class MainWindow(QMainWindow):
@@ -24,7 +14,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("MainWindow")
         #self.setGeometry(100, 100, 300, 200)
-        self.widget = Program()
+        self.widget = MainWindowW()
         self.setCentralWidget(self.widget)
 
 
