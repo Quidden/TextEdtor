@@ -10,14 +10,14 @@ def black_list_load(*, black_list: str, white_list: str):
     temp = []
 
     if not os.path.exists(
-            "../../data/black_list.json"):
+            "../../../data/black_list.json"):
         with open(
-                "../../data/black_list.json", "w") as outfile:
+                "../../../data/black_list.json", "w") as outfile:
             json.dump([],outfile)
 
 
     with open(
-            "../../data/black_list.json", "r") as read_file:
+            "../../../data/black_list.json", "r") as read_file:
         temp = json.load(read_file)
 
     for item in temp:
@@ -33,7 +33,7 @@ def black_list_load(*, black_list: str, white_list: str):
     json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
 
     with open(
-            "../../data/black_list.json", "w") as outfile:
+            "../../../data/black_list.json", "w") as outfile:
         outfile.write(json_object)
 
     return True
@@ -43,20 +43,20 @@ def black_list_load(*, black_list: str, white_list: str):
 
 def black_list_item_delete(id):
     with open(
-            "../../data/black_list.json", "r") as read_file:
+            "../../../data/black_list.json", "r") as read_file:
         temp = json.load(read_file)
     temp.pop(id)
     json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
     with open(
-            "../../data/black_list.json", "w") as outfile:
+            "../../../data/black_list.json", "w") as outfile:
         outfile.write(json_object)
 
 def get_black_list_items():
     if not os.path.exists(
-            "../../data/black_list.json"):
+            "../../../data/black_list.json"):
         return []
     with open(
-            "../../data/black_list.json", "r") as read_file:
+            "../../../data/black_list.json", "r") as read_file:
         temp = json.load(read_file)
     return temp
 

@@ -1,37 +1,23 @@
-from PyQt6.QtCore import \
-    Qt
 from PyQt6.QtWidgets import \
     QVBoxLayout, \
     QHBoxLayout, \
-    QTextEdit, \
-    QPushButton, \
     QWidget, \
-    QLabel, \
-    QTabWidget, \
-    QComboBox, \
-    QGroupBox, \
-    QLineEdit, \
-    QListWidget, \
-    QMessageBox, \
-    QMenu, \
-    QCheckBox
-from src.services import \
-    text_edit
-from src.services.black_list import \
+    QMessageBox
+from src.texteditor.services.black_list import \
     black_list_load, \
     refresh_black_list, \
     accept_black_list
-from src.services.text_edit import \
+from src.texteditor.services.text_edit import \
     text_division
-from src.ui.get_button_widget import \
+from src.texteditor.ui.get_button_widget import \
     GenButtons
-from src.ui.image_result_widget import \
+from src.texteditor.ui.image_result_widget import \
     ImageResult
-from src.ui.result_widget import \
+from src.texteditor.ui.result_widget import \
     ResultWidget
-from src.ui.setting_widget import \
+from src.texteditor.ui.setting_widget import \
     SettingsTab
-from src.ui.text_widget import \
+from src.texteditor.ui.text_widget import \
     TextWidget
 
 

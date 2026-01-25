@@ -4,9 +4,10 @@ from PyQt6.QtWidgets import \
     QVBoxLayout, \
     QTabWidget, \
     QTextEdit
-from src.ui.setting_tabs import \
-    black_list_menu_widget, \
-    setting_menu_widget
+from src.texteditor.ui.setting_tabs import \
+    setting_menu_widget, \
+    black_list_menu_widget
+
 
 class SettingsTab(QWidget):
     def __init__(self):

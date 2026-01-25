@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QMainWindow
 )
 
-from src.ui.TestTabWindow import \
+from src.texteditor.ui.main_window_widget import \
     MainWindowW
 
 

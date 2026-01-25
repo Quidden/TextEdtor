@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import \
     QLineEdit, \
     QMenu
 
-from src.services.black_list import \
+from src.texteditor.services.black_list import \
     refresh_black_list, \
     black_list_item_delete
 
