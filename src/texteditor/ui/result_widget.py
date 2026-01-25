@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import \
     QHBoxLayout, \
     QTextEdit, \
     QPushButton
+import pyperclip
 
 
 class ResultWidget(QWidget):
@@ -22,6 +23,7 @@ class ResultWidget(QWidget):
         self.v_head_box_layout.addLayout(self.h_head_layout)
 
         self.copy_button = QPushButton("Copy")
+        self.copy_button.clicked.connect(lambda: pyperclip.copy(self.result_text.toPlainText()))
         self.h_head_layout.addWidget(self.copy_button)
         self.tech_button = QPushButton("Tech")
         self.tech_button.setVisible(False)
