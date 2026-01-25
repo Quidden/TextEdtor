@@ -4,7 +4,9 @@ from PyQt6.QtWidgets import \
     QWidget, \
     QGroupBox, \
     QVBoxLayout, \
-    QCheckBox
+    QCheckBox, \
+    QPushButton, \
+    QHBoxLayout
 
 
 class SettingMenu(QWidget):
@@ -21,6 +23,10 @@ class SettingMenu(QWidget):
         self.check_box_text_empty_settings = QCheckBox("Empty text settings")
         self.v_layout.addWidget(self.check_box_text_empty_settings)
 
+        self.h_button_save_layout = QHBoxLayout()
+        self.button_save = QPushButton("Save settings")
+        self.h_button_save_layout.addWidget(self.button_save)
+        self.v_layout.addLayout(self.h_button_save_layout)
 
         self.v_main_layout = QVBoxLayout()
         self.v_main_layout.addWidget(self.box)

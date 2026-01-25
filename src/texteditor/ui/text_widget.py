@@ -16,16 +16,16 @@ class TextWidget(QWidget):
         self.box.setLayout(self.v_head_box_layout)
 
 
-        self.image_box = QGroupBox("Image DropBox")
-        self.imageLayout = QVBoxLayout(self.image_box)
-        self.v_head_box_layout.addWidget(self.image_box)
+        # self.image_box = QGroupBox("Image DropBox")
+        # self.imageLayout = QVBoxLayout(self.image_box)
+        # self.v_head_box_layout.addWidget(self.image_box)
 
 
         self.image = QLabel()
         self.image.setMinimumHeight(150)
         self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image.setText('Preview')
-        self.imageLayout.addWidget(self.image)
+        # self.imageLayout.addWidget(self.image)
 
 
         self.GeneralText = QTextEdit()
