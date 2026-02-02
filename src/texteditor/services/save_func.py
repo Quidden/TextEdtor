@@ -22,8 +22,8 @@ def save_settings(*, text_settings, empty_text_settings):
         return "create json error"
 
     settings = {
-        "Text settings": text_settings,
-        "Empty text settings": empty_text_settings
+        "text_settings": text_settings,
+        "empty_text_settings": empty_text_settings
     }
 
     json_object = json.dumps(settings, indent=4, sort_keys=True, ensure_ascii=False)

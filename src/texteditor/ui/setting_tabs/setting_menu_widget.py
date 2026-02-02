@@ -29,9 +29,9 @@ class SettingMenu(QWidget):
 
         if load_settings():
             for key, value in load_settings().items():
-                if key == "Empty text settings":
+                if key == "empty_text_settings":
                     self.check_box_text_empty_settings.setChecked(value)
-                if key == "Text settings":
+                if key == "text_settings":
                     self.check_box_text_settings.setChecked(value)
 
         self.h_button_save_layout = QHBoxLayout()
