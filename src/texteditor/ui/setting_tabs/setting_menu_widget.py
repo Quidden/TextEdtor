@@ -8,6 +8,10 @@ from PyQt6.QtWidgets import \
     QPushButton, \
     QHBoxLayout
 
+from texteditor.services.save_func import \
+    save_settings, \
+    load_settings
+
 
 class SettingMenu(QWidget):
     def __init__(self):
@@ -23,8 +27,19 @@ class SettingMenu(QWidget):
         self.check_box_text_empty_settings = QCheckBox("Empty text settings")
         self.v_layout.addWidget(self.check_box_text_empty_settings)
 
+        if load_settings():
+            for key, value in load_settings().items():
+                if key == "Empty text settings":
+                    self.check_box_text_empty_settings.setChecked(value)
+                if key == "Text settings":
+                    self.check_box_text_settings.setChecked(value)
+
         self.h_button_save_layout = QHBoxLayout()
         self.button_save = QPushButton("Save settings")
+        self.button_save.clicked.connect(lambda: save_settings(
+            text_settings=self.check_box_text_settings.isChecked(),
+            empty_text_settings=self.check_box_text_empty_settings.isChecked(),
+        ))
         self.h_button_save_layout.addWidget(self.button_save)
         self.v_layout.addLayout(self.h_button_save_layout)
 
