@@ -9,36 +9,44 @@ from ..config import \
 
 def black_list_load(*, black_list: str, white_list: str):
 
-    os.makedirs(DATA_DIR, exist_ok=True)
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+    except:
+        return "mkdir error"
 
     temp = []
 
-    if not os.path.exists(
-            BLACK_LIST_FILE):
+    try:
+        if not os.path.exists(
+                BLACK_LIST_FILE):
+            with open(
+                    BLACK_LIST_FILE, "w") as outfile:
+                json.dump([],outfile)
+    except:
+        return "create json error"
+
+    try:
+        with open(
+                BLACK_LIST_FILE, "r") as read_file:
+            temp = json.load(read_file)
+
+        for item in temp:
+            if item["black_list"] == black_list:
+                return False
+
+        id = len(temp)
+
+        item = {"id": id, "black_list": black_list, "white_list": white_list}
+
+        temp.append(item)
+
+        json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
+
         with open(
                 BLACK_LIST_FILE, "w") as outfile:
-            json.dump([],outfile)
-
-
-    with open(
-            BLACK_LIST_FILE, "r") as read_file:
-        temp = json.load(read_file)
-
-    for item in temp:
-        if item["black_list"] == black_list:
-            return False
-
-    id = len(temp)
-
-    item = {"id": id, "black_list": black_list, "white_list": white_list}
-
-    temp.append(item)
-
-    json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
-
-    with open(
-            BLACK_LIST_FILE, "w") as outfile:
-        outfile.write(json_object)
+            outfile.write(json_object)
+    except:
+        return "write json error"
 
     return True
 
@@ -46,43 +54,55 @@ def black_list_load(*, black_list: str, white_list: str):
         print(tems)
 
 def black_list_item_delete(id):
-    with open(
-            BLACK_LIST_FILE, "r") as read_file:
-        temp = json.load(read_file)
-    temp.pop(id)
-    json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
-    with open(
-            BLACK_LIST_FILE, "w") as outfile:
-        outfile.write(json_object)
+    try:
+        with open(
+                BLACK_LIST_FILE, "r") as read_file:
+            temp = json.load(read_file)
+        temp.pop(id)
+        json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
+        with open(
+                BLACK_LIST_FILE, "w") as outfile:
+            outfile.write(json_object)
+    except:
+        return "write json error"
 
 def get_black_list_items():
-    if not os.path.exists(
-            BLACK_LIST_FILE):
+    try:
+        if not os.path.exists(
+                BLACK_LIST_FILE):
+            return []
+        with open(
+                BLACK_LIST_FILE, "r") as read_file:
+            temp = json.load(read_file)
+        return temp
+    except:
         return []
-    with open(
-            BLACK_LIST_FILE, "r") as read_file:
-        temp = json.load(read_file)
-    return temp
 
 def refresh_black_list():
-    refreshed_list = [('id:' + str(item['id']) +
-                       ': (' + str(item['black_list']) +
-                       ') -> (' + str(item['white_list'] + ')'))
-                      for item in get_black_list_items()]
-    return refreshed_list
+    try:
+        refreshed_list = [('id:' + str(item['id']) +
+                           ': (' + str(item['black_list']) +
+                           ') -> (' + str(item['white_list'] + ')'))
+                          for item in get_black_list_items()]
+        return refreshed_list
+    except:
+        return []
 
 def accept_black_list(text: str, cbx: bool, el: bool):
-    white_text = text
-    for item in get_black_list_items():
-        if item['black_list'] in text:
-            white_text = white_text.replace(item['black_list'], item['white_list'])
+    try:
+        white_text = text
+        for item in get_black_list_items():
+            if item['black_list'] in text:
+                white_text = white_text.replace(item['black_list'], item['white_list'])
 
-    if cbx:
-        lines = white_text.split('\n')
-        lines = [line.lstrip() for line in lines]
-        white_text = '\n'.join(lines)
+        if cbx:
+            lines = white_text.split('\n')
+            lines = [line.lstrip() for line in lines]
+            white_text = '\n'.join(lines)
 
-    if el:
-        white_text = re.sub(r'\n\s*\n+', '\n\n', white_text)
+        if el:
+            white_text = re.sub(r'\n\s*\n+', '\n\n', white_text)
 
-    return white_text
+        return white_text
+    except:
+        return "error"
