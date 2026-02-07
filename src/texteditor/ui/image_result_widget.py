@@ -13,9 +13,6 @@ from PyQt6.QtWidgets import \
     QHBoxLayout, \
     QComboBox, \
     QPushButton
-from sqlalchemy import \
-    event
-
 
 class ImageResult(QWidget):
     def __init__(self):
@@ -29,10 +26,10 @@ class ImageResult(QWidget):
 
         self.dropZone = DropZone()
         image_layout.addWidget(self.dropZone)
-        self.image_result = QLabel("preview")
-        self.image_result.setMinimumHeight(150)
-        self.image_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        image_layout.addWidget(self.image_result)
+        # self.image_result = QLabel("preview")
+        # self.image_result.setMinimumHeight(150)
+        # self.image_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # image_layout.addWidget(self.image_result)
 
         box_layout.addWidget(self.boxImage)
 
@@ -73,9 +70,7 @@ class DropZone(QLabel):
     def dragEnterEvent(self, event: QDragEnterEvent):
         print("devent")
         md = event.mimeData()
-        # if md.hasImage():
-        #     event.acceptProposedAction()
-        #     return
+        print(type(md))
         if md.hasUrls():
             for url in md.urls():
                 path = url.toLocalFile().lower()
@@ -93,7 +88,8 @@ class DropZone(QLabel):
         else:
             path = md.urls()[0].toLocalFile()
             pix = QPixmap(path)
+        self.setScaledContents(True)
         self.setPixmap(pix)
         event.acceptProposedAction()
-        return md
+
 
