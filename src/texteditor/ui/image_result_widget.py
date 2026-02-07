@@ -3,7 +3,8 @@ from PyQt6.QtCore import \
 from PyQt6.QtGui import \
     QDragEnterEvent, \
     QDropEvent, \
-    QPixmap
+    QPixmap, \
+    QDragLeaveEvent
 from PyQt6.QtWidgets import \
     QWidget, \
     QGroupBox, \
@@ -12,6 +13,8 @@ from PyQt6.QtWidgets import \
     QHBoxLayout, \
     QComboBox, \
     QPushButton
+from sqlalchemy import \
+    event
 
 
 class ImageResult(QWidget):
@@ -24,6 +27,8 @@ class ImageResult(QWidget):
         self.boxImage = QGroupBox("Image result")
         image_layout = QVBoxLayout(self.boxImage)
 
+        self.dropZone = DropZone()
+        image_layout.addWidget(self.dropZone)
         self.image_result = QLabel("preview")
         self.image_result.setMinimumHeight(150)
         self.image_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -53,3 +58,42 @@ class ImageResult(QWidget):
 
     def get_combobox(self):
         return self.combobox
+
+
+class DropZone(QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setText("Перетащи изображение сюда")
+        self.setMinimumSize(240, 160)
+        self.setStyleSheet("border: 2px dashed #888; padding: 20px;")
+
+        self.setAcceptDrops(True)
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        print("devent")
+        md = event.mimeData()
+        # if md.hasImage():
+        #     event.acceptProposedAction()
+        #     return
+        if md.hasUrls():
+            for url in md.urls():
+                path = url.toLocalFile().lower()
+                if path.endswith((".jpg", ".jpeg", ".png", ".webp")):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event: QDropEvent):
+        print("drevent")
+        md = event.mimeData()
+        if md.hasImage():
+            img = md.imageData()
+            pix = QPixmap.fromImage(img)
+        else:
+            path = md.urls()[0].toLocalFile()
+            pix = QPixmap(path)
+        self.setPixmap(pix)
+        event.acceptProposedAction()
+        return md
+
