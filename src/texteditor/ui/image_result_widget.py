@@ -1,10 +1,19 @@
+from gzip import \
+    WRITE
+
+import \
+    fmt
 from PyQt6.QtCore import \
-    Qt
+    Qt, \
+    QBuffer, \
+    QIODevice
 from PyQt6.QtGui import \
     QDragEnterEvent, \
     QDropEvent, \
     QPixmap, \
-    QDragLeaveEvent
+    QDragLeaveEvent, \
+    QImage, \
+    QImageReader
 from PyQt6.QtWidgets import \
     QWidget, \
     QGroupBox, \
@@ -12,12 +21,15 @@ from PyQt6.QtWidgets import \
     QLabel, \
     QHBoxLayout, \
     QComboBox, \
-    QPushButton
+    QPushButton, \
+    QApplication
+
 
 class ImageResult(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.image_result = None
         self.box = QGroupBox("Convert")
         box_layout = QVBoxLayout(self.box)
 
@@ -37,9 +49,14 @@ class ImageResult(QWidget):
         self.combobox = QComboBox()
         self.combobox.addItems(["WebP", "PNG", "JPEG"])
         self.resButton = QPushButton("Result")
+        self.pasteButton = QPushButton("Paste")
+        self.pasteButton.clicked.connect(self.paste_image)
+        self.resButton.clicked.connect(self.convert_image)
+
 
         controls.addWidget(self.combobox)
         controls.addWidget(self.resButton)
+        controls.addWidget(self.pasteButton)
         box_layout.addLayout(controls)
 
         main_layout = QVBoxLayout(self)
@@ -55,6 +72,44 @@ class ImageResult(QWidget):
 
     def get_combobox(self):
         return self.combobox
+
+    def paste_image(self):
+        print("paste")
+        app = QApplication.instance()
+        clipboard = app.clipboard()
+        image = clipboard.image()
+        if image.isNull():
+            print("null")
+            self.dropZone.setText("Скопируйте изображение!")
+            return
+        self.image_result = image
+        self.dropZone.setPixmap(QPixmap.fromImage(self.image_result))
+
+    def convert_image(self):
+        print("convert1")
+        if self.image_result is None:
+            return
+
+        app = QApplication.instance()
+        clipboard = app.clipboard()
+        buffer = QBuffer()
+        print("convert2")
+        if self.combobox.currentText() == "WebP":
+            self.image_result.save(buffer, "WebP")
+            self.image_result.save("image.webp", "WebP")
+            print("webp")
+        if self.combobox.currentText() == "PNG":
+            self.image_result.save(buffer, "PNG")
+            self.image_result.save("image.png", "PNG")
+            print("png")
+        if self.combobox.currentText() == "JPEG":
+            self.image_result.save(buffer, "JPEG")
+            self.image_result.save("image.jpeg", "JPEG")
+            print("jpeg")
+        conv_image = QImage()
+        conv_image.loadFromData(buffer.data())
+        clipboard.setImage(conv_image)
+        print("done")
 
 
 class DropZone(QLabel):
@@ -91,5 +146,8 @@ class DropZone(QLabel):
         self.setScaledContents(True)
         self.setPixmap(pix)
         event.acceptProposedAction()
+
+
+
 
 
