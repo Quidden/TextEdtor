@@ -1,3 +1,5 @@
+import \
+    os
 from gzip import \
     WRITE
 
@@ -23,6 +25,9 @@ from PyQt6.QtWidgets import \
     QComboBox, \
     QPushButton, \
     QApplication
+
+from src.texteditor.config import \
+    IMAGE_DIR
 
 
 class ImageResult(QWidget):
@@ -82,6 +87,11 @@ class ImageResult(QWidget):
             print("null")
             self.dropZone.setText("Скопируйте изображение!")
             return
+        try:
+            os.makedirs(IMAGE_DIR, exist_ok=True)
+        except:
+            return "mkdir error"
+        image.save(IMAGE_DIR + "/image.png")
         self.image_result = image
         self.dropZone.setPixmap(QPixmap.fromImage(self.image_result))
 
