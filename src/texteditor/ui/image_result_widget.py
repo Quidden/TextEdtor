@@ -28,6 +28,7 @@ from PyQt6.QtWidgets import \
 
 from src.texteditor.config import \
     IMAGE_DIR
+from PIL import Image
 
 
 class ImageResult(QWidget):
@@ -104,17 +105,15 @@ class ImageResult(QWidget):
         clipboard = app.clipboard()
         buffer = QBuffer()
         print("convert2")
+        img = Image.open(IMAGE_DIR + "/image.png")
         if self.combobox.currentText() == "WebP":
-            self.image_result.save(buffer, "WebP")
-            self.image_result.save("image.webp", "WebP")
+            img.save(IMAGE_DIR + "/image.webp", 'WEBP', quality=100)
             print("webp")
         if self.combobox.currentText() == "PNG":
-            self.image_result.save(buffer, "PNG")
-            self.image_result.save("image.png", "PNG")
+            img.save(IMAGE_DIR + "/image.png", 'PNG', quality=100)
             print("png")
         if self.combobox.currentText() == "JPEG":
-            self.image_result.save(buffer, "JPEG")
-            self.image_result.save("image.jpeg", "JPEG")
+            img.save(IMAGE_DIR + "/image.jpeg", 'JPEG', quality=100)
             print("jpeg")
         conv_image = QImage()
         conv_image.loadFromData(buffer.data())
