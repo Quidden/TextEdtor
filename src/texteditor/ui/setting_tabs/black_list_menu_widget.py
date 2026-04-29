@@ -64,6 +64,8 @@ class BlackListMenu(QWidget):
 
     def open_menu(self, position):
         item = self.b_list.itemAt(position)
+        if item is None:
+            return
 
         menu = QMenu(self)
 

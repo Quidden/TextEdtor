@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import \
     QPushButton, \
     QHBoxLayout
 
-from texteditor.services.save_func import \
+from src.texteditor.services.save_func import \
     save_settings, \
     load_settings
 

@@ -54,21 +54,20 @@ class MainWindowW(QWidget):
 
     def bl_list_func(self):
 
-        if not black_list_load(
+        result = black_list_load(
                 black_list=self.SettingsTab.black_list_menu.black_list_item.text(),
-                white_list=self.SettingsTab.black_list_menu.white_list_item.text()):
+                white_list=self.SettingsTab.black_list_menu.white_list_item.text())
+
+        if result is not True:
             self.msg_box = QMessageBox()
-            self.setWindowTitle("Error")
-            self.msg_box.setText("Replace")
+            self.msg_box.setWindowTitle("Error")
+            self.msg_box.setText(str(result))
             self.msg_box.setIcon(QMessageBox.Icon.Critical)
             self.msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
 
             if self.msg_box.exec() == QMessageBox.StandardButton.Ok:
                 return
 
-        black_list_load(
-            black_list=self.SettingsTab.black_list_menu.black_list_item.text(),
-            white_list=self.SettingsTab.black_list_menu.white_list_item.text())
         self.SettingsTab.black_list_menu.clear_black_list()
         for item in refresh_black_list():
             self.SettingsTab.black_list_menu.add_black_list_item(str(item))

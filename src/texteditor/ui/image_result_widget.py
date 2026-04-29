@@ -90,7 +90,7 @@ class ImageResult(QWidget):
             return
         try:
             os.makedirs(IMAGE_DIR, exist_ok=True)
-        except:
+        except OSError:
             return "mkdir error"
         image.save(IMAGE_DIR + "/image.png")
         self.image_result = image
