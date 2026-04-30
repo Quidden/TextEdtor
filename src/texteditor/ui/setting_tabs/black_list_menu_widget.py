@@ -14,6 +14,8 @@ from PyQt6.QtWidgets import \
 from src.texteditor.services.black_list import \
     refresh_black_list, \
     black_list_item_delete
+from src.texteditor.services.app_logger import \
+    app_logger
 
 
 class BlackListMenu(QWidget):
@@ -72,7 +74,11 @@ class BlackListMenu(QWidget):
         delete = menu.addAction("Delete")
         action = menu.exec(self.b_list.mapToGlobal(position))
         if action == delete:
-            black_list_item_delete(self.b_list.row(item))
+            result = black_list_item_delete(self.b_list.row(item))
+            if result is True:
+                app_logger.log("Black list item deleted", source=__file__)
+            else:
+                app_logger.log(f"Black list item delete failed: {result}", False, source=__file__)
             self.clear_black_list()
             for item in refresh_black_list():
                 self.b_list.addItem(str(item))

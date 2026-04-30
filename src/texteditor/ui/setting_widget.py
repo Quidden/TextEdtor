@@ -24,6 +24,7 @@ class SettingsTab(QWidget):
         self.setting_menu = setting_menu_widget.SettingMenu()
         self.tab_widget.addTab(self.setting_menu, "Settings")
         self.log = QTextEdit()
+        self.log.setReadOnly(True)
         self.tab_widget.addTab(self.log, "Log")
         self.v_layout.addWidget(self.tab_widget)
 

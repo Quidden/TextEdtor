@@ -7,6 +7,9 @@ from PyQt6.QtWidgets import \
     QPushButton
 import pyperclip
 
+from src.texteditor.services.app_logger import \
+    app_logger
+
 
 class ResultWidget(QWidget):
     def __init__(self):
@@ -23,7 +26,7 @@ class ResultWidget(QWidget):
         self.v_head_box_layout.addLayout(self.h_head_layout)
 
         self.copy_button = QPushButton("Copy")
-        self.copy_button.clicked.connect(lambda: pyperclip.copy(self.result_text.toPlainText()))
+        self.copy_button.clicked.connect(self.copy_text)
         self.h_head_layout.addWidget(self.copy_button)
         self.tech_button = QPushButton("Tech")
         self.tech_button.setVisible(False)
@@ -44,6 +47,15 @@ class ResultWidget(QWidget):
 
     def get_copy_button(self):
         return self.copy_button
+
+    def copy_text(self):
+        try:
+            pyperclip.copy(self.result_text.toPlainText())
+        except pyperclip.PyperclipException as error:
+            app_logger.log(f"Result text copy failed: {error}", False, source=__file__)
+            return
+
+        app_logger.log("Result text copied", source=__file__)
 
     def get_tech_button(self):
         return self.tech_button
