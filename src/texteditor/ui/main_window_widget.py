@@ -99,13 +99,13 @@ class MainWindowW(QWidget):
             bx.setParent(None)
             bx.deleteLater()
         text_blocks = text_division(self.TextWidget.get_general_text())
-        if len(text_blocks) != 1:
+        if len(text_blocks) != 1 and len(text_blocks) <= 4:
             for text_block in text_blocks:
                 result_box = ResultWidget()
                 result_box.set_text(text_block)
                 self.v_text_result_layout.addWidget(result_box)
             app_logger.log(f"Text split into {len(text_blocks)} block(s)", source=__file__)
             return
-        app_logger.log(f"Text split into 0 block(s)",False, source=__file__)
+        app_logger.log(f"Text split into {len(text_blocks)} block(s)",False, source=__file__)
 
 
