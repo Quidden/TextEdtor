@@ -8,10 +8,14 @@ from ..config import \
     DATA_DIR
 
 def black_list_load(*, black_list: str, white_list: str):
+    black_list = black_list.strip()
+
+    if not black_list:
+        return "black list item is empty"
 
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
-    except:
+    except OSError:
         return "mkdir error"
 
     temp = []
@@ -22,7 +26,7 @@ def black_list_load(*, black_list: str, white_list: str):
             with open(
                     BLACK_LIST_FILE, "w") as outfile:
                 json.dump([],outfile)
-    except:
+    except OSError:
         return "create json error"
 
     try:
@@ -45,26 +49,26 @@ def black_list_load(*, black_list: str, white_list: str):
         with open(
                 BLACK_LIST_FILE, "w") as outfile:
             outfile.write(json_object)
-    except:
+    except (OSError, json.JSONDecodeError, KeyError):
         return "write json error"
 
     return True
-
-    for tems in temp:
-        print(tems)
 
 def black_list_item_delete(id):
     try:
         with open(
                 BLACK_LIST_FILE, "r") as read_file:
             temp = json.load(read_file)
+        if id < 0 or id >= len(temp):
+            return "item not found"
         temp.pop(id)
         json_object = json.dumps(temp, indent=4, sort_keys=True, ensure_ascii=False)
         with open(
                 BLACK_LIST_FILE, "w") as outfile:
             outfile.write(json_object)
-    except:
+    except (OSError, json.JSONDecodeError):
         return "write json error"
+    return True
 
 def get_black_list_items():
     try:
@@ -75,7 +79,7 @@ def get_black_list_items():
                 BLACK_LIST_FILE, "r") as read_file:
             temp = json.load(read_file)
         return temp
-    except:
+    except (OSError, json.JSONDecodeError):
         return []
 
 def refresh_black_list():
@@ -85,7 +89,7 @@ def refresh_black_list():
                            ') -> (' + str(item['white_list'] + ')'))
                           for item in get_black_list_items()]
         return refreshed_list
-    except:
+    except KeyError:
         return []
 
 def accept_black_list(text: str, cbx: bool, el: bool):
@@ -104,5 +108,5 @@ def accept_black_list(text: str, cbx: bool, el: bool):
             white_text = re.sub(r'\n\s*\n+', '\n\n', white_text)
 
         return white_text
-    except:
+    except (KeyError, TypeError):
         return "error"

@@ -8,9 +8,11 @@ from PyQt6.QtWidgets import \
     QPushButton, \
     QHBoxLayout
 
-from texteditor.services.save_func import \
+from src.texteditor.services.save_func import \
     save_settings, \
     load_settings
+from src.texteditor.services.app_logger import \
+    app_logger
 
 
 class SettingMenu(QWidget):
@@ -23,12 +25,25 @@ class SettingMenu(QWidget):
         self.box.setLayout(self.v_layout)
 
         self.check_box_text_settings = QCheckBox("Text settings")
+        self.check_box_text_settings.stateChanged.connect(
+            lambda: app_logger.log(
+                f"Text settings changed to {self.check_box_text_settings.isChecked()}",
+                source=__file__
+            )
+        )
         self.v_layout.addWidget(self.check_box_text_settings)
         self.check_box_text_empty_settings = QCheckBox("Empty text settings")
+        self.check_box_text_empty_settings.stateChanged.connect(
+            lambda: app_logger.log(
+                f"Empty text settings changed to {self.check_box_text_empty_settings.isChecked()}",
+                source=__file__
+            )
+        )
         self.v_layout.addWidget(self.check_box_text_empty_settings)
 
-        if load_settings():
-            for key, value in load_settings().items():
+        settings = load_settings()
+        if settings:
+            for key, value in settings.items():
                 if key == "empty_text_settings":
                     self.check_box_text_empty_settings.setChecked(value)
                 if key == "text_settings":
@@ -36,10 +51,7 @@ class SettingMenu(QWidget):
 
         self.h_button_save_layout = QHBoxLayout()
         self.button_save = QPushButton("Save settings")
-        self.button_save.clicked.connect(lambda: save_settings(
-            text_settings=self.check_box_text_settings.isChecked(),
-            empty_text_settings=self.check_box_text_empty_settings.isChecked(),
-        ))
+        self.button_save.clicked.connect(self.save_current_settings)
         self.h_button_save_layout.addWidget(self.button_save)
         self.v_layout.addLayout(self.h_button_save_layout)
 
@@ -51,3 +63,14 @@ class SettingMenu(QWidget):
         return self.check_box_text_settings.isChecked()
     def get_check_box_text_empty_settings(self):
         return self.check_box_text_empty_settings.isChecked()
+
+    def save_current_settings(self):
+        result = save_settings(
+            text_settings=self.check_box_text_settings.isChecked(),
+            empty_text_settings=self.check_box_text_empty_settings.isChecked(),
+        )
+
+        if result is True:
+            app_logger.log("Settings saved", source=__file__)
+        else:
+            app_logger.log(f"Settings save failed: {result}", False, source=__file__)

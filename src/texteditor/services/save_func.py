@@ -9,7 +9,7 @@ def save_settings(*, text_settings, empty_text_settings):
 
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
-    except:
+    except OSError:
         return "mkdir error"
 
     try:
@@ -18,7 +18,7 @@ def save_settings(*, text_settings, empty_text_settings):
             with open(
                     SAVE_SETTINGS_FILE, "w") as outfile:
                 json.dump([],outfile)
-    except:
+    except OSError:
         return "create json error"
 
     settings = {
@@ -32,7 +32,7 @@ def save_settings(*, text_settings, empty_text_settings):
         with open(
             SAVE_SETTINGS_FILE, "w") as outfile:
             outfile.write(json_object)
-    except:
+    except OSError:
         return "write json error"
 
     return True
@@ -43,7 +43,10 @@ def load_settings():
     if not os.path.exists(SAVE_SETTINGS_FILE):
         return False
 
-    with open(
-            SAVE_SETTINGS_FILE, "r") as infile:
-        settings = json.load(infile)
+    try:
+        with open(
+                SAVE_SETTINGS_FILE, "r") as infile:
+            settings = json.load(infile)
+    except (OSError, json.JSONDecodeError):
+        return False
     return settings

@@ -28,6 +28,8 @@ from PyQt6.QtWidgets import \
 
 from src.texteditor.config import \
     IMAGE_DIR
+from src.texteditor.services.app_logger import \
+    app_logger
 from PIL import Image
 
 
@@ -54,6 +56,9 @@ class ImageResult(QWidget):
         controls = QHBoxLayout()
         self.combobox = QComboBox()
         self.combobox.addItems(["WebP", "PNG", "JPEG"])
+        self.combobox.currentTextChanged.connect(
+            lambda text: app_logger.log(f"Image output format changed to {text}", source=__file__)
+        )
         self.resButton = QPushButton("Result")
         self.pasteButton = QPushButton("Paste")
         self.pasteButton.clicked.connect(self.paste_image)
@@ -86,26 +91,37 @@ class ImageResult(QWidget):
         image = clipboard.image()
         if image.isNull():
             print("null")
+            app_logger.log("Image paste failed: clipboard has no image", False, source=__file__)
             self.dropZone.setText("Скопируйте изображение!")
             return
         try:
             os.makedirs(IMAGE_DIR, exist_ok=True)
-        except:
+        except OSError:
+            app_logger.log(
+                "Image paste failed: image directory cannot be created",
+                False,
+                source=__file__)
             return "mkdir error"
         image.save(IMAGE_DIR + "/image.png")
         self.image_result = image
         self.dropZone.setPixmap(QPixmap.fromImage(self.image_result))
+        app_logger.log("Image pasted from clipboard", source=__file__)
 
     def convert_image(self):
         print("convert1")
         if self.image_result is None:
+            app_logger.log("Image convert failed: no image selected", False, source=__file__)
             return
 
         app = QApplication.instance()
         clipboard = app.clipboard()
         buffer = QBuffer()
         print("convert2")
-        img = Image.open(IMAGE_DIR + "/image.png")
+        try:
+            img = Image.open(IMAGE_DIR + "/image.png")
+        except OSError as error:
+            app_logger.log(f"Image convert failed: {error}", False, source=__file__)
+            return
         if self.combobox.currentText() == "WebP":
             img.save(IMAGE_DIR + "/image.webp", 'WEBP', quality=100)
             print("webp")
@@ -118,6 +134,7 @@ class ImageResult(QWidget):
         conv_image = QImage()
         conv_image.loadFromData(buffer.data())
         clipboard.setImage(conv_image)
+        app_logger.log(f"Image converted to {self.combobox.currentText()}", source=__file__)
         print("done")
 
 
@@ -140,7 +157,9 @@ class DropZone(QLabel):
                 path = url.toLocalFile().lower()
                 if path.endswith((".jpg", ".jpeg", ".png", ".webp")):
                     event.acceptProposedAction()
+                    app_logger.log("Image drag accepted", source=__file__)
                     return
+        app_logger.log("Image drag rejected", False, source=__file__)
         event.ignore()
 
     def dropEvent(self, event: QDropEvent):
@@ -155,6 +174,7 @@ class DropZone(QLabel):
         self.setScaledContents(True)
         self.setPixmap(pix)
         event.acceptProposedAction()
+        app_logger.log("Image dropped", source=__file__)
 
 
 
