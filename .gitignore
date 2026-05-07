@@ -25,6 +25,10 @@ htmlcov/
 .coverage
 .coverage.*
 
+# Runtime data
+data/
+images/
+
 # OS
 .DS_Store
 Thumbs.db
