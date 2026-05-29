@@ -10,11 +10,13 @@ from src.texteditor.ui.main_window_widget import \
     MainWindowW
 from src.texteditor.services.app_logger import \
     setup_logging
+from src.texteditor import \
+    __version__
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("TextEdtor")
+        self.setWindowTitle(f"TextEdtor {__version__}")
         self.resize(1440, 820)
         self.widget = MainWindowW()
         self.setCentralWidget(self.widget)

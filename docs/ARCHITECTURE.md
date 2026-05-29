@@ -25,7 +25,7 @@ The service modules live under `src/texteditor/services/`.
 - `black_list.py` stores replacement rules in JSON, reads them back, deletes items, and applies replacements to text.
 - `save_func.py` stores and loads checkbox settings.
 - `text_edit.py` contains the text splitting helper.
-- `app_logger.py` writes logs to `data/app.log` and mirrors them into the in-app log widget.
+- `app_logger.py` configures application logging and writes events to `data/app.log`.
 
 ## Runtime Paths
 
@@ -34,7 +34,7 @@ The service modules live under `src/texteditor/services/`.
 - `DATA_DIR`: `data/`
 - `BLACK_LIST_FILE`: `data/black_list.json`
 - `SAVE_SETTINGS_FILE`: `data/save_settings.json`
-- `LOG_FILE`: `data/app.log`
+- `APP_LOG_FILE`: `data/app.log`
 - `IMAGE_DIR`: `images/`
 
 ## Data Flow
@@ -44,11 +44,11 @@ The service modules live under `src/texteditor/services/`.
 3. `accept_black_list()` loads replacement rules from JSON and applies replacements.
 4. The cleaned text is written back into `TextWidget`.
 5. `MainWindowW.text_division_result()` splits text by `=====` and creates `ResultWidget` instances.
-6. User copies individual result blocks through `ResultWidget.copy_text()`.
+6. User copies individual result blocks through `ResultWidget`.
+7. `SettingsTab` watches `data/app.log` and refreshes the in-app log tab when the file changes.
 
 ## Known Limitations
 
 - The split separator is currently hard-coded.
-- Result rendering is limited to four text blocks.
 - The project does not currently include automated tests.
-- Some image conversion behavior is still marked for follow-up in the source code.
+- The release build is portable and not code-signed yet.

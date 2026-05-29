@@ -32,7 +32,7 @@ First block
 Second block
 ```
 
-Click **Button2** to split the current editor content. The application displays up to four result blocks. Each block has a **Copy** button.
+Click **Split text** to split the current editor content. Each result block has a **Copy** button.
 
 ## Image Conversion
 
@@ -40,9 +40,11 @@ The image widget supports clipboard paste and drag-and-drop for common image for
 
 1. Copy an image to the clipboard or drag an image file into the image area.
 2. Select the output format: WebP, PNG, or JPEG.
-3. Click **Result**.
+3. Click **Convert**.
 
 The converted image is written to `images/` using a format-specific filename such as `image.webp`, `image.png`, or `image.jpeg`.
+
+After conversion, drag the preview area out of the app to copy the converted image file into Explorer or another application that accepts dropped files.
 
 ## Logs
 
@@ -51,3 +53,5 @@ Open **Settings -> Log** to see application events. The same events are also app
 ```text
 data/app.log
 ```
+
+The log tab updates automatically when the log file changes. Use **Refresh log** if you want to reload it manually.

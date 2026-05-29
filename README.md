@@ -7,7 +7,7 @@ Desktop helper for cleaning, splitting, replacing text fragments, and converting
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyQt6](https://img.shields.io/badge/PyQt6-6.10-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Desktop-555555?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-In%20development-F2A900?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v0.1.0-7C3AED?style=for-the-badge)
 
 </div>
 
@@ -20,6 +20,7 @@ The project is lightweight and local-first: settings, replacement rules, logs, a
 ## Contents
 
 - [Features](#features)
+- [Download](#download)
 - [Quick Start](#quick-start)
 - [How It Works](#how-it-works)
 - [Project Structure](#project-structure)
@@ -36,8 +37,21 @@ The project is lightweight and local-first: settings, replacement rules, logs, a
 | Text cleanup | Can remove leading spaces and collapse repeated empty lines. |
 | Text splitting | Splits text by the `=====` separator and shows result blocks with copy buttons. |
 | Image conversion | Converts pasted or dropped images to WebP, PNG, or JPEG. |
+| File drag-out | Lets you drag the converted image out of the app like a file from Explorer. |
 | Logging | Writes events to both the in-app log tab and `data/app.log`. |
 | Persistence | Saves replacement rules and checkbox settings as JSON files. |
+
+## Download
+
+The first release is **TextEdtor v0.1.0**.
+
+Download the Windows package from [GitHub Releases](https://github.com/Quidden/TextEdtor/releases):
+
+```text
+TextEdtor-v0.1.0-windows.zip
+```
+
+Extract the archive and run `TextEdtor.exe`. This is a portable build, so there is no installer yet. Windows SmartScreen may show a warning because the app is not code-signed.
 
 ## Quick Start
 
@@ -79,9 +93,10 @@ source .venv/bin/activate
 2. Add replacement rules in **Settings -> Black list**.
 3. Enable cleanup options in **Settings -> Settings** if needed.
 4. Click **Accept black list** to apply replacements and cleanup.
-5. Split text with **Button2** using the `=====` separator.
+5. Split text with **Split text** using the `=====` separator.
 6. Copy result blocks with the **Copy** button.
-7. Paste or drop an image, choose WebP, PNG, or JPEG, and click **Result**.
+7. Paste or drop an image, choose WebP, PNG, or JPEG, and click **Convert**.
+8. Drag the converted preview out of the image panel if you need the output file elsewhere.
 
 ## Project Structure
 
@@ -121,6 +136,8 @@ These folders are ignored by Git because they contain local user data and genera
 
 - [Usage Guide](docs/USAGE.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Release Guide](docs/RELEASE.md)
+- [v0.1.0 Release Notes](docs/RELEASE_NOTES_v0.1.0.md)
 
 ## Development
 
