@@ -1,7 +1,7 @@
 import logging
 import os
 
-from src.texteditor.config import APP_LOG_FILE, DATA_DIR
+from texteditor.config import APP_LOG_FILE, DATA_DIR
 
 
 def setup_logging():

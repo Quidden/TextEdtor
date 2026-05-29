@@ -7,8 +7,11 @@ from PyQt6.QtWidgets import \
     QPushButton
 import pyperclip
 
-from src.texteditor.services.app_logger import \
-    app_logger
+from texteditor.services.app_logger import \
+    get_logger
+
+
+logger = get_logger(__name__)
 
 
 class ResultWidget(QWidget):
@@ -52,10 +55,10 @@ class ResultWidget(QWidget):
         try:
             pyperclip.copy(self.result_text.toPlainText())
         except pyperclip.PyperclipException as error:
-            app_logger.log(f"Result text copy failed: {error}", False, source=__file__)
+            logger.error("Result text copy failed: %s", error)
             return
 
-        app_logger.log("Result text copied", source=__file__)
+        logger.info("Result text copied")
 
     def get_tech_button(self):
         return self.tech_button

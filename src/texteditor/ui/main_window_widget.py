@@ -3,23 +3,23 @@ from PyQt6.QtWidgets import \
     QHBoxLayout, \
     QWidget, \
     QMessageBox
-from src.texteditor.services.black_list import \
+from texteditor.services.black_list import \
     black_list_load, \
     refresh_black_list, \
     accept_black_list
-from src.texteditor.services.text_edit import \
+from texteditor.services.text_edit import \
     text_division
-from src.texteditor.ui.get_button_widget import \
+from texteditor.ui.get_button_widget import \
     GenButtons
-from src.texteditor.ui.image_result_widget import \
+from texteditor.ui.image_result_widget import \
     ImageResult
-from src.texteditor.ui.result_widget import \
+from texteditor.ui.result_widget import \
     ResultWidget
-from src.texteditor.ui.setting_widget import \
+from texteditor.ui.setting_widget import \
     SettingsTab
-from src.texteditor.ui.text_widget import \
+from texteditor.ui.text_widget import \
     TextWidget
-from src.texteditor.services.app_logger import \
+from texteditor.services.app_logger import \
     get_logger
 
 

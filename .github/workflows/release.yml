@@ -31,7 +31,7 @@ jobs:
 
       - name: Build application
         run: |
-          pyinstaller --noconfirm --clean --windowed --name TextEdtor --add-data "src/texteditor/ui/app_style.qss;src/texteditor/ui" --add-data "src/texteditor/ui/check_mark.svg;src/texteditor/ui" src/main.py
+          pyinstaller --noconfirm --clean --windowed --name TextEdtor --paths src --add-data "src/texteditor/ui/app_style.qss;texteditor/ui" --add-data "src/texteditor/ui/check_mark.svg;texteditor/ui" src/main.py
 
       - name: Package archive
         shell: pwsh
@@ -53,4 +53,4 @@ jobs:
         with:
           name: TextEdtor ${{ github.ref_name }}
           files: ${{ env.ARCHIVE }}
-          body_path: docs/RELEASE_NOTES_v0.1.0.md
+          body_path: docs/RELEASE_NOTES_v0.1.1.md

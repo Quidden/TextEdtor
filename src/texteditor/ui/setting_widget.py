@@ -13,10 +13,10 @@ from PyQt6.QtWidgets import \
     QPushButton, \
     QTabWidget, \
     QTextEdit
-from src.texteditor.config import \
+from texteditor.config import \
     APP_LOG_FILE, \
     DATA_DIR
-from src.texteditor.ui.setting_tabs import \
+from texteditor.ui.setting_tabs import \
     setting_menu_widget, \
     black_list_menu_widget
 

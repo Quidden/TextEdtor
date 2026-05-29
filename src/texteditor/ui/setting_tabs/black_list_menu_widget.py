@@ -11,10 +11,10 @@ from PyQt6.QtWidgets import \
     QLineEdit, \
     QMenu
 
-from src.texteditor.services.black_list import \
+from texteditor.services.black_list import \
     refresh_black_list, \
     black_list_item_delete
-from src.texteditor.services.app_logger import \
+from texteditor.services.app_logger import \
     get_logger
 
 

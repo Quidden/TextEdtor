@@ -7,13 +7,13 @@ TextEdtor releases are built by GitHub Actions.
 The first release version is:
 
 ```text
-v0.1.0
+v0.1.1
 ```
 
 The downloadable Windows package is published as a GitHub Release asset:
 
 ```text
-TextEdtor-v0.1.0-windows.zip
+TextEdtor-v0.1.1-windows.zip
 ```
 
 This package is portable. Users only need to extract the archive and run `TextEdtor.exe`.
@@ -27,9 +27,9 @@ This package is portable. Users only need to extract the archive and run `TextEd
 5. Create and push a version tag:
 
 ```powershell
-git tag v0.1.0
+git tag v0.1.1
 git push origin master
-git push origin v0.1.0
+git push origin v0.1.1
 ```
 
 GitHub Actions will build the Windows executable, zip it, and attach it to the GitHub Release.
@@ -41,7 +41,7 @@ Local builds use PyInstaller:
 ```powershell
 pip install -r requirements.txt
 pip install pyinstaller
-pyinstaller --noconfirm --clean --windowed --name TextEdtor --add-data "src/texteditor/ui/app_style.qss;src/texteditor/ui" --add-data "src/texteditor/ui/check_mark.svg;src/texteditor/ui" src/main.py
+pyinstaller --noconfirm --clean --windowed --name TextEdtor --paths src --add-data "src/texteditor/ui/app_style.qss;texteditor/ui" --add-data "src/texteditor/ui/check_mark.svg;texteditor/ui" src/main.py
 ```
 
 The output appears in:

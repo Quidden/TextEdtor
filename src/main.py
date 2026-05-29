@@ -6,12 +6,26 @@ from PyQt6.QtWidgets import (
     QMainWindow
 )
 
-from src.texteditor.ui.main_window_widget import \
+from texteditor.ui.main_window_widget import \
     MainWindowW
-from src.texteditor.services.app_logger import \
+from texteditor.services.app_logger import \
     setup_logging
-from src.texteditor import \
+from texteditor import \
     __version__
+
+
+def resource_path(*parts):
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    candidates = []
+    if bundle_root:
+        candidates.append(Path(bundle_root).joinpath(*parts))
+    candidates.append(Path(__file__).resolve().parent.joinpath(*parts))
+    candidates.append(Path(__file__).resolve().parent / "src" / Path(*parts))
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -24,7 +38,7 @@ class MainWindow(QMainWindow):
 
 app = QApplication(sys.argv)
 setup_logging()
-style_path = Path(__file__).parent / "texteditor" / "ui" / "app_style.qss"
+style_path = resource_path("texteditor", "ui", "app_style.qss")
 if style_path.exists():
     style = style_path.read_text(encoding="utf-8")
     check_mark_path = (style_path.parent / "check_mark.svg").as_posix()

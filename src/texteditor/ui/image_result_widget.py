@@ -25,8 +25,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from src.texteditor.config import IMAGE_DIR
-from src.texteditor.services.app_logger import get_logger
+from texteditor.config import IMAGE_DIR
+from texteditor.services.app_logger import get_logger
 
 
 logger = get_logger(__name__)

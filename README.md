@@ -7,7 +7,7 @@ Desktop helper for cleaning, splitting, replacing text fragments, and converting
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyQt6](https://img.shields.io/badge/PyQt6-6.10-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Desktop-555555?style=for-the-badge)
-![Release](https://img.shields.io/badge/Release-v0.1.0-7C3AED?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v0.1.1-7C3AED?style=for-the-badge)
 
 </div>
 
@@ -43,12 +43,12 @@ The project is lightweight and local-first: settings, replacement rules, logs, a
 
 ## Download
 
-The first release is **TextEdtor v0.1.0**.
+The current release is **TextEdtor v0.1.1**.
 
 Download the Windows package from [GitHub Releases](https://github.com/Quidden/TextEdtor/releases):
 
 ```text
-TextEdtor-v0.1.0-windows.zip
+TextEdtor-v0.1.1-windows.zip
 ```
 
 Extract the archive and run `TextEdtor.exe`. This is a portable build, so there is no installer yet. Windows SmartScreen may show a warning because the app is not code-signed.
@@ -137,7 +137,7 @@ These folders are ignored by Git because they contain local user data and genera
 - [Usage Guide](docs/USAGE.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Release Guide](docs/RELEASE.md)
-- [v0.1.0 Release Notes](docs/RELEASE_NOTES_v0.1.0.md)
+- [v0.1.1 Release Notes](docs/RELEASE_NOTES_v0.1.1.md)
 
 ## Development
 
