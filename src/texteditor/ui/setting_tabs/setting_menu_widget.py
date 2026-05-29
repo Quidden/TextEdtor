@@ -8,9 +8,14 @@ from PyQt6.QtWidgets import \
     QPushButton, \
     QHBoxLayout
 
-from texteditor.services.save_func import \
+from src.texteditor.services.save_func import \
     save_settings, \
     load_settings
+from src.texteditor.services.app_logger import \
+    get_logger
+
+
+logger = get_logger(__name__)
 
 
 class SettingMenu(QWidget):
@@ -40,6 +45,7 @@ class SettingMenu(QWidget):
             text_settings=self.check_box_text_settings.isChecked(),
             empty_text_settings=self.check_box_text_empty_settings.isChecked(),
         ))
+        self.button_save.clicked.connect(lambda: logger.info("Settings saved"))
         self.h_button_save_layout.addWidget(self.button_save)
         self.v_layout.addLayout(self.h_button_save_layout)
 

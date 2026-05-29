@@ -13,11 +13,15 @@ class GenButtons(QWidget):
         self.box.setLayout(self.v_layout)
 
         self.button1 = QPushButton("Accept black list")
-        self.button2 = QPushButton("Button2")
+        self.button2 = QPushButton("Split text")
         self.button3 = QPushButton("Button3")
         self.button4 = QPushButton("Button4")
         self.button5 = QPushButton("Button5")
         self.button6 = QPushButton("Button6")
+        self.button3.setVisible(False)
+        self.button4.setVisible(False)
+        self.button5.setVisible(False)
+        self.button6.setVisible(False)
 
         self.v_layout.addWidget(self.button1)
         self.v_layout.addWidget(self.button2)

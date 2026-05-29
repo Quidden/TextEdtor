@@ -19,29 +19,40 @@ from src.texteditor.ui.setting_widget import \
     SettingsTab
 from src.texteditor.ui.text_widget import \
     TextWidget
+from src.texteditor.services.app_logger import \
+    get_logger
+
+
+logger = get_logger(__name__)
 
 
 class MainWindowW(QWidget):
     def __init__(self):
         super().__init__()
+        self.setObjectName("MainWindow")
 
         #Head layout to which other layouts are attached
         self.h_head_layout = QHBoxLayout()
+        self.h_head_layout.setContentsMargins(14, 14, 14, 14)
+        self.h_head_layout.setSpacing(12)
         self.setLayout(self.h_head_layout)
 
         #The resulting layout with split text and image conversion settings
         self.v_text_result_layout = QVBoxLayout()
+        self.v_text_result_layout.setSpacing(10)
         self.v_text_result_layout.addWidget(ImageResult())
         self.h_head_layout.addLayout(self.v_text_result_layout, 2)
 
         #The main user text layout
         self.main_text = QVBoxLayout()
+        self.main_text.setSpacing(10)
         self.TextWidget = TextWidget()
         self.main_text.addWidget(self.TextWidget)
         self.h_head_layout.addLayout(self.main_text, 4)
 
         #Settings layout includes a custom button widget
         self.v_settings_layout = QVBoxLayout()
+        self.v_settings_layout.setSpacing(10)
         self.SettingsTab = SettingsTab()
         self.v_settings_layout.addWidget(self.SettingsTab)
         self.SettingsTab.black_list_menu.confirm_button.clicked.connect(lambda : self.bl_list_func())
@@ -53,10 +64,13 @@ class MainWindowW(QWidget):
         self.h_head_layout.addLayout(self.v_settings_layout, 2)
 
     def bl_list_func(self):
+        black_list_text = self.SettingsTab.black_list_menu.black_list_item.text()
+        white_list_text = self.SettingsTab.black_list_menu.white_list_item.text()
 
         if not black_list_load(
-                black_list=self.SettingsTab.black_list_menu.black_list_item.text(),
-                white_list=self.SettingsTab.black_list_menu.white_list_item.text()):
+                black_list=black_list_text,
+                white_list=white_list_text):
+            logger.warning("Black list item was not added: duplicate or invalid value")
             self.msg_box = QMessageBox()
             self.setWindowTitle("Error")
             self.msg_box.setText("Replace")
@@ -67,13 +81,15 @@ class MainWindowW(QWidget):
                 return
 
         black_list_load(
-            black_list=self.SettingsTab.black_list_menu.black_list_item.text(),
-            white_list=self.SettingsTab.black_list_menu.white_list_item.text())
+            black_list=black_list_text,
+            white_list=white_list_text)
+        logger.info("Black list item added: %s -> %s", black_list_text, white_list_text)
         self.SettingsTab.black_list_menu.clear_black_list()
         for item in refresh_black_list():
             self.SettingsTab.black_list_menu.add_black_list_item(str(item))
 
     def replace_text(self):
+        logger.info("Applying text replacement settings")
         self.TextWidget.set_general_text(
             accept_black_list(
             self.TextWidget.get_general_text(),
@@ -83,6 +99,7 @@ class MainWindowW(QWidget):
     def get_text_widget(self):
         return self.TextWidget
     def text_division_result(self):
+        logger.info("Splitting text into result blocks")
         for bx in self.findChildren(ResultWidget):
             bx.setParent(None)
             bx.deleteLater()
