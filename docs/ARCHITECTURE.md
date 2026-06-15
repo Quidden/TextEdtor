@@ -11,12 +11,16 @@ TextEdtor is a small PyQt6 desktop application organized into UI widgets and ser
 The UI lives under `src/texteditor/ui/`.
 
 - `main_window_widget.py` composes the main layout, connects buttons to service functions, and coordinates text/image widgets.
+- `telegram_controller.py` coordinates Telegram widgets, workers, and page navigation.
+- `telegram_workers.py` contains background Qt workers for Telegram operations.
+- `telegram_auth_widget.py` owns the progressive QR/phone/2FA form.
+- `telegram_manager_widget.py` displays and edits Saved Messages.
 - `text_widget.py` owns the central plain-text editor.
 - `result_widget.py` displays one split text block and provides clipboard copying.
 - `image_result_widget.py` handles image preview, paste/drop input, and conversion controls.
 - `setting_widget.py` contains the settings tab widget.
 - `setting_tabs/black_list_menu_widget.py` manages replacement rule input and deletion.
-- `setting_tabs/setting_menu_widget.py` manages cleanup checkboxes and saved settings.
+- `setting_tabs/setting_menu_widget.py` manages cleanup checkboxes, embeds the Telegram auth widget, and saves settings.
 
 ## Service Layer
 
@@ -26,6 +30,11 @@ The service modules live under `src/texteditor/services/`.
 - `save_func.py` stores and loads checkbox settings.
 - `text_edit.py` contains the text splitting helper.
 - `app_logger.py` configures application logging and writes events to `data/app.log`.
+- `telegram/client.py` creates and serializes Telethon clients.
+- `telegram/auth.py` implements QR, phone-code, and 2FA authorization.
+- `telegram/messages.py` sends, loads, edits, and deletes Saved Messages.
+- `telegram/storage.py` reads and atomically writes Telegram runtime JSON.
+- `telegram/errors.py` defines application-level Telegram exceptions.
 
 ## Runtime Paths
 

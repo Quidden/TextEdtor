@@ -180,6 +180,28 @@ QLabel {
     background: transparent;
 }
 
+QLabel#StatusText {
+    color: #aaa4bb;
+    font-size: 11px;
+}
+
+QLabel#PageTitle {
+    color: #f2efff;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QPushButton#DeleteIconButton {
+    background: #2a1b28;
+    border-color: #6f304a;
+    padding: 4px;
+}
+
+QPushButton#DeleteIconButton:hover {
+    background: #4a2034;
+    border-color: #c24872;
+}
+
 QLabel#DropZone {
     background: #151421;
     border: 2px dashed #7c3aed;

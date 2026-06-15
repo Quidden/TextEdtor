@@ -28,6 +28,12 @@ htmlcov/
 # Runtime data
 data/
 images/
+*.session
+*.session-journal
+telegram_login.json
+telegram_messages.json
+telegram_state.json
+save_settings.json
 
 # OS
 .DS_Store

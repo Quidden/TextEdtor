@@ -114,6 +114,9 @@ class ImageResult(QWidget):
     def get_combobox(self):
         return self.combobox
 
+    def get_current_image_path(self):
+        return self.output_image_path or self.source_image_path
+
     def paste_image(self):
         image = QApplication.instance().clipboard().image()
         if image.isNull():
