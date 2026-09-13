@@ -110,12 +110,22 @@ src/
       black_list.py
       save_func.py
       text_edit.py
+      telegram/
+        auth.py
+        client.py
+        errors.py
+        messages.py
+        storage.py
     ui/
       main_window_widget.py
       text_widget.py
       result_widget.py
       image_result_widget.py
       setting_widget.py
+      telegram_auth_widget.py
+      telegram_controller.py
+      telegram_manager_widget.py
+      telegram_workers.py
       setting_tabs/
 ```
 
@@ -136,6 +146,7 @@ These folders are ignored by Git because they contain local user data and genera
 
 - [Usage Guide](docs/USAGE.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Telegram Integration](docs/TELEGRAM_INTEGRATION.md)
 - [Release Guide](docs/RELEASE.md)
 - [v0.1.1 Release Notes](docs/RELEASE_NOTES_v0.1.1.md)
 
