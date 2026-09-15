@@ -1,770 +1,189 @@
-# Telegram Integration
+# Telegram Integration Reference
 
-This document describes every Telegram-related part of TextEdtor: authentication,
-local files, background workers, sending to Saved Messages, message management,
-security boundaries, and failure handling.
+[Documentation index](README.md) · [Telegram UI guide](TELEGRAM_UI.md) · [Architecture](ARCHITECTURE.md)
 
-## 1. Purpose
+This reference describes the current source implementation. For button-by-button instructions, use the Telegram UI guide. The published v0.1.1 executable predates these services.
 
-TextEdtor uses Telegram as a personal output destination. It signs in as a normal
-Telegram user through the Telegram Client API and writes to that user's
-**Saved Messages** chat.
+## Scope and dependencies
 
-The integration does not use a bot token or the Telegram Bot API.
+TextEdtor uses a Telegram **user session** through Telethon's MTProto client. All messaging operations target `"me"` (Saved Messages). There is no Bot API, bot token, chat selector, or channel publishing flow.
 
-Main capabilities:
+The pinned direct dependencies are in [requirements.txt](../requirements.txt): `Telethon==1.43.0`, `qrcode[pil]==8.2`, `PyQt6==6.10.2`, and `pyperclip==1.11.0`. Qt handles application images; `qrcode` produces the login QR PNG.
 
-- sign in by QR code;
-- sign in by phone number and Telegram login code;
-- support Telegram two-step verification (2FA);
-- preserve an authorized local session;
-- send split text blocks to Saved Messages;
-- attach the current image;
-- send one date hashtag before the first message of each day;
-- load the latest 30 Saved Messages;
-- preview text and media;
-- edit text messages and media captions;
-- delete Saved Messages.
-
-## 2. Technology
-
-| Component | Purpose |
-| --- | --- |
-| Telethon | Telegram Client API / MTProto client |
-| `qrcode` | Converts a Telegram QR login URL into a PNG |
-| PyQt6 `QThread` | Keeps network calls outside the UI thread |
-| Telethon SQLite session | Stores Telegram authorization locally |
-| JSON runtime files | Store settings, daily hashtag state, and cached messages |
-
-Dependencies are declared in `requirements.txt`:
-
-```text
-Telethon==1.43.0
-qrcode[pil]==8.2
-```
-
-## 3. High-Level Architecture
+## Components
 
 ```mermaid
 flowchart LR
-    U[User] --> UI[PyQt6 UI]
-    UI --> MW[MainWindowW coordinator]
-    MW --> W[Background QThread workers]
-    W --> TS[services/telegram package]
-    TS --> T[Telegram Client API]
-    T --> SM[Saved Messages]
-    TS --> S[(telegram_user.session)]
-    TS --> J[(Runtime JSON files)]
+    UI[Qt widgets] --> C[TelegramControllerMixin]
+    C --> W[QThread workers]
+    W --> S[Telegram services]
+    S --> L[Process-local client lock]
+    L --> T[Telethon client]
+    T --> TG[Telegram Saved Messages]
+    S --> D[(Local JSON and session)]
+    W -->|result and error signals| C
+    C --> UI
 ```
 
-Responsibilities:
+Paths below are relative to `src/texteditor/`.
 
-- UI widgets collect input and display state.
-- `MainWindowW` connects signals, creates workers, and updates widgets.
-- worker classes run blocking Telegram operations away from the main UI thread.
-- `services/telegram/` owns Telethon calls and Telegram-specific rules.
-- `data/` contains local runtime state and is ignored by Git.
-
-## 4. Source Files
-
-| File | Responsibility |
+| Module | Responsibility |
 | --- | --- |
-| `src/texteditor/services/telegram/client.py` | Client creation, credential validation, serialized event loops |
-| `src/texteditor/services/telegram/auth.py` | QR, phone code, 2FA, account checks |
-| `src/texteditor/services/telegram/messages.py` | Saved Messages send, history, edit, delete |
-| `src/texteditor/services/telegram/storage.py` | Runtime JSON reads and atomic writes |
-| `src/texteditor/services/telegram/errors.py` | Telegram application exceptions |
-| `src/texteditor/ui/main_window_widget.py` | Main page composition and text editor behavior |
-| `src/texteditor/ui/telegram_controller.py` | Telegram UI orchestration and navigation |
-| `src/texteditor/ui/telegram_workers.py` | Background Qt workers |
-| `src/texteditor/ui/telegram_auth_widget.py` | Progressive QR/phone/2FA form |
-| `src/texteditor/ui/setting_tabs/setting_menu_widget.py` | General settings host and persistence |
-| `src/texteditor/ui/result_widget.py` | `Push to TG` button and per-message status |
-| `src/texteditor/ui/get_button_widget.py` | Global Telegram connection status |
-| `src/texteditor/ui/telegram_manager_widget.py` | Saved Messages list, editor, delete controls |
-| `src/texteditor/services/save_func.py` | Saves API credentials and phone configuration |
-| `src/texteditor/config.py` | Runtime paths |
+| `ui/main_window_widget.py` | Composes the main/manager pages and inherits the Telegram controller mixin. |
+| `ui/telegram_controller.py` | Connects UI signals, starts and retains workers, changes pages, updates statuses/cache views. |
+| `ui/telegram_auth_widget.py` | API fields and progressive QR/phone/password controls. |
+| `ui/telegram_manager_widget.py` | Message rows, media labels, editor, delete signals, shared replacement-rule panel. |
+| `ui/result_widget.py` | Per-block send signal and status. |
+| `ui/get_button_widget.py` | Account status and manager navigation button. |
+| `ui/telegram_workers.py` | Qt background workers and QR PNG generation. |
+| `services/telegram/client.py` | Credential validation, client creation, serialized async calls, error mapping. |
+| `services/telegram/auth.py` | QR, phone-code, password completion, and account checks. |
+| `services/telegram/messages.py` | Send, sync, edit, delete, daily marker, and message-record conversion. |
+| `services/telegram/storage.py` | JSON reads with defaults and writes via temporary-file replacement. |
+| `services/telegram/errors.py` | `TelegramError` and `TelegramPasswordRequired`. |
+| `services/save_func.py` | Persist API credentials/phone alongside cleanup preferences. |
+| `config.py` | All runtime paths. |
 
-## 5. Runtime Files
+## Credentials and authentication
 
-All files below are created locally under `data/`.
+UI credentials use the keys `api_id`, `api_hash`, and `phone`. `validate_credentials()` converts `api_id` to an integer, requires a nonempty hash, and requires the phone only for phone-code operations. Server-side validation still applies.
 
-| Path | Contents | Sensitivity |
-| --- | --- | --- |
-| `data/save_settings.json` | `api_id`, `api_hash`, phone, text settings | Sensitive configuration |
-| `data/telegram_user.session` | Authorized Telethon session | Critical: grants account access |
-| `data/telegram_user.session-journal` | Temporary SQLite journal, if present | Critical |
-| `data/telegram_login.json` | Temporary phone code hash | Sensitive, temporary |
-| `data/telegram_state.json` | Last daily hashtag sent | Low sensitivity |
-| `data/telegram_messages.json` | Cached metadata/text for latest messages | Private message data |
-| `data/app.log` | Application and Telegram operation logs | May contain operational details |
+Obtain application credentials through [Telegram's API development tools](https://core.telegram.org/api/obtaining_api_id). The authorized user session is a separate file.
 
-The entire `data/` directory and explicit session patterns are ignored in
-`.gitignore`.
+| Function in `auth.py` | Behavior |
+| --- | --- |
+| `request_login_code(credentials)` | Calls `send_code_request`, saves the phone and code hash, and reports delivery metadata. |
+| `complete_login(credentials, code, password="")` | Restores the code hash, submits the code, optionally submits 2FA, then removes temporary phone state on this success path. |
+| `complete_password_login(credentials, password)` | Completes authorization when only the cloud password remains. |
+| `login_with_qr(credentials, qr_callback, password="")` | Creates a login URL, passes it to the callback, waits up to 120 seconds, and handles 2FA. |
+| `check_telegram_account(credentials)` | Uses the authorized session and `get_me()` to return account ID/name. |
+| `sent_code_message(sent_code)` | Formats Telegram's actual delivery method, expected code length, and timeout when available. |
 
-Never include `data/` in a source archive, release archive, bug report, or
-public repository.
+`TelegramAuthWorker` converts the QR URL to PNG bytes and emits `qr_ready`. For `sign_in`, a nonempty code selects `complete_login`; otherwise it selects `complete_password_login`.
 
-## 6. Credentials and Session
+The QR token's expiry is controlled by Telegram; the 120-second wait is an application timeout, not a guaranteed token lifetime. Login codes/passwords are not persisted. Successful authorization resets the form; saving API credentials requires **Save settings**.
 
-### API ID and API hash
+### Current authentication UI gaps
 
-`api_id` and `api_hash` identify the Telegram application created at
-`my.telegram.org`.
+- After `code_sent`, the worker also emits `succeeded`. `telegram_auth_succeeded()` unconditionally resets the form, hiding the phone-code entry step.
+- Password visibility depends on error text containing `2FA password` or `cloud password`. Some phone errors use `Two-step verification password` and miss that check.
+- The service can reload `phone_code_hash`, but the widget does not restore its phone-code step after restart.
+- Temporary phone state is removed by the normal `complete_login` success path; QR/password-only paths do not perform the same cleanup.
 
-They are required for both QR and phone authentication.
+These are current behavior, not supported recovery guarantees. The user guide recommends QR login.
 
-They do not authorize a user account by themselves. Account authorization is
-stored separately in the Telethon session.
+## Workers and client lifecycle
 
-### Phone number
+| Worker | Signals / work |
+| --- | --- |
+| `TelegramAuthWorker` | QR bytes, code/password step signals, success/error. |
+| `TelegramCheckWorker` | Connected/error after account check. |
+| `TelegramSendWorker` | Sent records/error for a result block. |
+| `TelegramMessagesSyncWorker` | Loaded records/error for history. |
+| `TelegramMessageActionWorker` | Edit/delete success/error. |
 
-The phone number is required only for the **Phone and code** login mode. QR
-login does not require it.
+Workers run network operations outside the Qt UI thread. `run_telegram()` acquires `_client_lock` and executes the coroutine with `asyncio.run()`. Each operation creates a client using the fixed session path, and normal connected operations disconnect in a `finally` block. `with_authorized_client()` verifies authorization before calling the supplied operation.
 
-### Telegram login code
+The lock serializes operations **within one process**. It does not coordinate multiple app instances. A QR wait can delay other workers. `receive_updates=False` means there is no subscription to incoming history updates; the manager synchronizes explicitly.
 
-The login code is temporary and used only in the phone login flow. It may be
-delivered to an active Telegram session instead of SMS.
+The controller suppresses overlapping account checks, history syncs, and auth workers of the same type. Send/action workers are retained in lists until completion; duplicate send clicks are not deduplicated. There is no general worker cancellation or shutdown-drain mechanism in the current UI.
 
-The code is never persisted by TextEdtor.
-
-### 2FA cloud password
-
-This is the Telegram two-step verification cloud password. It is not:
-
-- the Telegram app PIN;
-- the phone unlock PIN;
-- a one-time Telegram login code.
-
-The password is kept only in the current UI field and is not saved to disk.
-
-### Session file
-
-After successful authorization, Telethon writes:
-
-```text
-data/telegram_user.session
-```
-
-Future launches reuse this file, so login is normally required only once.
-
-Deleting the session file signs TextEdtor out locally. Revoking the session
-from Telegram's **Settings -> Devices** invalidates it remotely.
-
-## 7. Progressive Authentication UI
-
-`SettingMenu` always shows:
-
-- Telegram API ID;
-- Telegram API hash;
-- login mode selector.
-
-It conditionally displays the rest.
-
-### QR mode
-
-Initial fields:
-
-- API ID;
-- API hash;
-- `Generate QR code`.
-
-After Telegram requests 2FA:
-
-- cloud password field;
-- `Sign in`.
-
-### Phone mode
-
-Initial fields:
-
-- API ID;
-- API hash;
-- phone number;
-- `Send code`.
-
-After Telegram accepts the code request:
-
-- login code field;
-- `Sign in`.
-
-After Telegram requests 2FA:
-
-- cloud password field;
-- `Sign in`.
-
-## 8. QR Authentication Flow
+## Send pipeline
 
 ```mermaid
 flowchart TD
-    A[Select QR code mode] --> B[Enter API ID and API hash]
-    B --> C[Press Generate QR code]
-    C --> D[TelegramAuthWorker starts]
-    D --> E[login_with_qr creates TelegramClient]
-    E --> F[Telethon requests QR login URL]
-    F --> G[Worker converts URL to PNG]
-    G --> H[UI displays QR image]
-    H --> I[User scans in Telegram Settings -> Devices]
-    I --> J{Telegram requests 2FA?}
-    J -- No --> K[Session becomes authorized]
-    J -- Yes --> L[Show cloud password field]
-    L --> M[User presses Sign in]
-    M --> N[complete_password_login]
-    N --> K
-    K --> O[Save telegram_user.session]
-    O --> P[Global status becomes green]
+    A[Push to TG: block text and current image path] --> B[Validate nonempty content]
+    B --> C[Send daily marker if local date changed]
+    C --> D{Image file exists?}
+    D -->|Yes| E[Send file with caption when text fits]
+    D -->|No| F[Send remaining text in chunks]
+    E --> F
+    F --> G[Convert returned messages to records]
+    G --> H[Prepend records to local cache, keep 30]
+    H --> I[Emit success and update block status]
 ```
 
-Important behavior:
+`send_to_telegram(credentials, text, image_path=None)` strips surrounding whitespace and checks for an existing image file. The selected path is the converted image when available, otherwise the source image. This path is global to the image widget and reused across block sends.
 
-- QR URLs expire after approximately two minutes.
-- A QR accepted by Telegram may still require 2FA.
-- When QR was accepted and 2FA is required, the user should enter the cloud
-  password and press `Sign in`; scanning another QR is unnecessary.
+- An image receives a caption when the stripped text is at most 1,024 characters.
+- Longer text is sent after the image as separate messages.
+- Text chunks are at most 4,096 Python characters, preferring the last newline in that range; leading newlines are stripped between chunks.
+- The code does not override Telethon's parse mode. Formatting-like text is subject to Telethon parsing; the application's `len()` limits are not a guarantee of Telegram acceptance.
+- An empty block is allowed with an image; otherwise it raises `TelegramError`.
 
-## 9. Phone Authentication Flow
+### Daily hashtag and partial sends
 
-```mermaid
-flowchart TD
-    A[Select Phone and code mode] --> B[Enter API ID, API hash, phone]
-    B --> C[Press Send code]
-    C --> D[request_login_code]
-    D --> E[Telethon send_code_request]
-    E --> F[Save phone_code_hash temporarily]
-    F --> G[Show login code field]
-    G --> H[User enters Telegram code]
-    H --> I[Press Sign in]
-    I --> J[complete_login]
-    J --> K{2FA required?}
-    K -- No --> L[Session authorized]
-    K -- Yes --> M[Show cloud password field]
-    M --> N[Enter password and press Sign in]
-    N --> O[complete_password_login]
-    O --> L
-    L --> P[Save telegram_user.session]
-    P --> Q[Global status becomes green]
-```
+`daily_hashtag()` uses `datetime.now()` to create `#YYYY_MM_DD` in local computer time. `send_daily_hashtag_if_needed()` compares it with `saved_messages_hashtag` in `telegram_state.json`, sends it, and saves the new value immediately.
 
-`data/telegram_login.json` stores only the temporary `phone_code_hash`, allowing
-the code entry step to continue after an application restart. The actual login
-code is not stored.
+The marker is not included in the returned content records; history synchronization retrieves it later. State is shared by the installation, not keyed by account.
 
-## 10. Connection Check
+Sending is not transactional. A marker, image, or earlier text chunk may already be in Telegram when a later operation fails. The final content cache is written only after the send loop completes. There is no rollback or retry deduplication; refresh Saved Messages before repeating a failed send.
 
-`check_telegram_account()` checks the authorized user session.
+## History and record schema
 
-```mermaid
-flowchart TD
-    A[Application starts or settings are saved] --> B[TelegramCheckWorker]
-    B --> C[check_telegram_account]
-    C --> D[with_authorized_client]
-    D --> E{Session authorized?}
-    E -- No --> F[Black indicator: not signed in]
-    E -- Yes --> G[client.get_me]
-    G --> H[Green indicator: connected]
-```
+`sync_telegram_messages(credentials, limit=30)` downloads `get_messages("me", limit=limit)`, maps each result with `record_from_message()`, and replaces the local cache. The manager uses 30. `get_telegram_messages()` reads only the cache and ignores its credentials argument.
 
-The global indicator is located below the main buttons.
-
-## 11. Sending a Split Block
-
-Each `ResultWidget` contains:
-
-- `Copy`;
-- `Push to TG`;
-- status dot and label.
-
-Status states:
-
-| State | Color | Meaning |
-| --- | --- | --- |
-| Idle | Black | Not sent or failed |
-| Sending | Yellow | Worker is running |
-| Sent | Green | Telegram accepted the message |
-
-### Send Flow
-
-```mermaid
-flowchart TD
-    A[Press Push to TG] --> B[ResultWidget emits text]
-    B --> C[MainWindowW.push_to_telegram]
-    C --> D{API configured?}
-    D -- No --> E[Return status to idle with tooltip]
-    D -- Yes --> F[Create TelegramSendWorker]
-    F --> G[send_to_telegram]
-    G --> H{Text or image exists?}
-    H -- No --> I[Raise TelegramError]
-    H -- Yes --> J[Ensure daily hashtag]
-    J --> K{Image exists?}
-    K -- Yes --> L[send_file to Saved Messages]
-    K -- No --> M[Skip media]
-    L --> N{Caption fits 1024 chars?}
-    N -- Yes --> O[Text used as caption]
-    N -- No --> P[Send text separately]
-    M --> P
-    O --> Q[Build local records]
-    P --> R[Split text into <=4096-char parts]
-    R --> S[send_message for every part]
-    S --> Q
-    Q --> T[Update cache]
-    T --> U[Green status]
-```
-
-## 12. Daily Date Hashtag
-
-Before the first successful content send of the day, TextEdtor sends:
-
-```text
-#YYYY_MM_DD
-```
-
-Example:
-
-```text
-#2026_06_15
-```
-
-Slashes are not used because `/` terminates a Telegram hashtag.
-
-```mermaid
-flowchart TD
-    A[send_to_telegram] --> B[Read telegram_state.json]
-    B --> C[Generate current #YYYY_MM_DD]
-    C --> D{Saved hashtag equals today?}
-    D -- Yes --> E[Continue with user content]
-    D -- No --> F[Send hashtag to Saved Messages]
-    F --> G[Persist today's hashtag]
-    G --> E
-```
-
-State is stored as:
+Example record (synthetic data):
 
 ```json
 {
-  "saved_messages_hashtag": "#2026_06_15"
+  "record_id": "104",
+  "chat_id": "Saved Messages",
+  "message_id": 104,
+  "message_type": "text",
+  "media_label": "",
+  "text": "Example note",
+  "editable": true,
+  "direction": "outgoing",
+  "created_at": "2026-09-15T12:00:00+03:00"
 }
 ```
 
-## 13. Text and Media Rules
+`direction` is assigned `outgoing` by the converter; it is not inferred from the Telegram message. Dates are converted to local time. Media labels include Photo, Video, Voice message, Audio, Animation, Sticker, Document, and generic Media, selected by the checks in `media_label()`.
 
-### Text
-
-- Empty text is rejected unless an image exists.
-- Text messages are split into parts of at most 4096 characters.
-- When possible, splitting occurs at a newline.
-
-### Image
-
-- The current source or converted image path comes from `ImageResult`.
-- Telethon uploads it with `client.send_file("me", ...)`.
-- If text is at most 1024 characters, it becomes the media caption.
-- Longer text is sent as separate messages.
-
-### Message classification
-
-`_record_from_message()` converts a Telethon message into a UI record:
-
-| Type | Condition | Editable |
+| `message_type` | Classification | Editable in this app |
 | --- | --- | --- |
-| `text` | No media | Yes |
-| `caption` | Media plus text | Yes |
-| `media` | Media without text | No |
+| `text` | No recognized media label. | Yes. |
+| `caption` | Media label and nonempty text. | Yes. |
+| `media` | Media label without text. | No. |
 
-Recognized media labels include Photo, Video, Voice message, Audio, Animation,
-Sticker, Document, and generic Media.
+History includes Saved Messages created outside TextEdtor. UI previews contain IDs, labels, and text, not downloaded media. Sync replaces the cache with server order. Local send results are prepended in send order, so a multi-message send may appear in a different order until the next sync.
 
-## 14. Saved Messages Manager
+## Edit and delete
 
-Open the manager with `Telegram manager`.
+`edit_telegram_message()` requires a cached editable record, nonempty stripped text, and an application limit of 1,024 characters for captions or 4,096 for text. It calls `edit_message("me", message_id, text)` and then synchronizes history. The UI cannot add a caption to an uncaptioned media record, remove a caption entirely, or replace media.
 
-The page contains:
+`delete_telegram_message()` calls `delete_messages("me", [message_id], revoke=True)` and then synchronizes history. The trash icon triggers this immediately without confirmation or undo.
 
-- latest 30 Saved Messages;
-- message ID;
-- media label;
-- first two text lines;
-- width-limited preview with ellipsis;
-- delete icon;
-- full text editor;
-- `Update in TG`;
-- black-list management block.
+If the remote mutation succeeds but the follow-up sync fails, the worker reports an error even though Telegram may already have applied the change. A fresh **Refresh** resolves the displayed state when connectivity returns.
 
-### History Loading
+## Runtime storage
 
-```mermaid
-flowchart TD
-    A[Open manager or press Refresh] --> B[TelegramMessagesSyncWorker]
-    B --> C[sync_telegram_messages]
-    C --> D[Authorized TelegramClient]
-    D --> E[get_messages me limit 30]
-    E --> F[Convert messages to records]
-    F --> G[Write telegram_messages.json cache]
-    G --> H[Render rows in QListWidget]
-```
+For source runs, paths are relative to the repository root. `config.py` computes this root from its own file location; bundled paths can differ (see [release guide](RELEASE.md#runtime-paths-in-packaged-builds)).
 
-The source of truth is Telegram Saved Messages. The JSON file is only a local
-fallback/cache.
-
-### Preview Generation
-
-```mermaid
-flowchart TD
-    A[Message record] --> B{Has media label?}
-    B -- Yes --> C[First line: media label]
-    B -- No --> D[Use text lines]
-    C --> E[Append first two caption lines]
-    D --> F[Keep first two text lines]
-    E --> G[Add message ID header]
-    F --> G
-    G --> H[Elide each line to widget width]
-```
-
-## 15. Editing Messages
-
-Only `text` and `caption` records are editable.
-
-Limits:
-
-- text: 4096 characters;
-- caption: 1024 characters.
-
-```mermaid
-flowchart TD
-    A[Select message] --> B[Load full text into editor]
-    B --> C[Modify text]
-    C --> D[Press Update in TG]
-    D --> E[TelegramMessageActionWorker action=edit]
-    E --> F[edit_telegram_message]
-    F --> G{Record editable?}
-    G -- No --> H[Show error]
-    G -- Yes --> I[client.edit_message me id text]
-    I --> J[Reload last 30 messages]
-    J --> K[Refresh manager list]
-```
-
-Media without a caption cannot be edited by this UI. It can still be deleted.
-
-## 16. Deleting Messages
-
-```mermaid
-flowchart TD
-    A[Press delete icon] --> B[Emit record_id]
-    B --> C[TelegramMessageActionWorker action=delete]
-    C --> D[delete_telegram_message]
-    D --> E[client.delete_messages me id revoke=true]
-    E --> F[Reload last 30 messages]
-    F --> G[Refresh manager list]
-```
-
-Because this is the user's own Saved Messages chat, deletion directly affects
-the Telegram account.
-
-## 17. Threading Model
-
-Telethon operations are blocking from the perspective of the Qt UI, so they run
-inside `QThread` subclasses.
-
-| Worker | Operation |
+| Path | Data and handling |
 | --- | --- |
-| `TelegramAuthWorker` | Code request, code login, QR login, 2FA completion |
-| `TelegramCheckWorker` | Authorization/session check |
-| `TelegramSendWorker` | Send text and media |
-| `TelegramMessagesSyncWorker` | Load last 30 Saved Messages |
-| `TelegramMessageActionWorker` | Edit or delete a message |
+| `data/save_settings.json` | `text_settings`, `empty_text_settings`, `telegram_api_id`, `telegram_api_hash`, `telegram_phone`; plaintext. |
+| `data/telegram_user.session` | Telethon SQLite authorization/session data; may grant account access. |
+| `data/telegram_user.session-journal` | SQLite journal when present. |
+| `data/telegram_login.json` | Phone plus temporary `phone_code_hash`, not the submitted login code. |
+| `data/telegram_state.json` | `saved_messages_hashtag` for the last marker sent. |
+| `data/telegram_messages.json` | Up to 30 cached message records in normal UI use, including private text. |
+| `data/app.log` | Plaintext application events and operation errors. |
 
-The service itself serializes Telethon event loops with `_client_lock`. This
-prevents two worker threads from concurrently operating on the same SQLite
-session file.
+Telegram JSON helpers read missing/unreadable/malformed files as the supplied default and write through `path.tmp` followed by `os.replace`. General settings and replacement-rule persistence use separate helpers and do not share that atomic-write implementation.
 
-```mermaid
-flowchart LR
-    UI[Qt main thread] -->|start| Q1[QThread worker]
-    Q1 -->|acquire| L[_client_lock]
-    L --> A[asyncio.run]
-    A --> TC[Telethon client]
-    TC -->|result/error signal| UI
-```
+The fixed session/cache paths support one local account context. Merely changing the phone/API fields does not switch the authorized account. There is no account-switch or logout control. Close the app before managing session files; revoke the session through Telegram's **Settings → Devices** when access should end. Removing a local file alone does not revoke remote authorization. An old message cache may remain after session removal.
 
-## 18. Function Reference: Telegram Service
+TextEdtor does not encrypt its settings, cache, or session. Git ignore rules prevent ordinary accidental tracking, but do not encrypt data or remove files already committed. Never distribute `data/`, sessions, or private logs in release archives or issue attachments.
 
-### Exceptions
+## Errors and verification
 
-#### `TelegramError`
+`run_telegram()` converts surfaced flood waits, invalid API credentials, invalid phone numbers, and other exceptions into `TelegramError`. The UI shows auth status, account/send tooltips, or manager operation status, and logs failures. Some retry/wait behavior also occurs inside Telethon.
 
-Common application-level Telegram exception. UI workers catch it and emit a
-human-readable error signal.
+For recovery, see [troubleshooting](TROUBLESHOOTING.md). For verification before changing these modules, see the [manual checklist](ARCHITECTURE.md#manual-verification).
 
-#### `TelegramPasswordRequired`
+## External references
 
-Specialized error indicating that Telegram accepted the first authentication
-step but requires the cloud 2FA password.
-
-### Client and validation helpers
-
-#### `validate_credentials(credentials, require_phone=False)`
-
-- parses `api_id` as an integer;
-- requires `api_hash`;
-- optionally requires a phone number;
-- returns `(api_id, api_hash, phone)`.
-
-#### `run_telegram(coroutine)`
-
-- acquires `_client_lock`;
-- executes one async operation with `asyncio.run`;
-- translates common Telethon exceptions into `TelegramError`.
-
-#### `create_client(credentials)`
-
-Creates a `TelegramClient` using `data/telegram_user` as the session path and
-disables background update reception.
-
-#### `with_authorized_client(credentials, operation)`
-
-- connects the client;
-- verifies authorization;
-- runs the supplied async operation;
-- always disconnects.
-
-### Authentication functions
-
-#### `request_login_code(credentials)`
-
-- requires phone credentials;
-- calls `send_code_request`;
-- stores `phone_code_hash` in memory and `telegram_login.json`;
-- reports the actual delivery type and expected code length.
-
-#### `complete_login(credentials, code, password="")`
-
-- restores `phone_code_hash`;
-- submits the login code;
-- completes 2FA immediately if the password was supplied;
-- deletes temporary login state after success.
-
-#### `complete_password_login(credentials, password)`
-
-Completes an already-started QR or code login when only the 2FA cloud password
-remains.
-
-#### `login_with_qr(credentials, qr_callback, password="")`
-
-- requests a QR login URL;
-- passes it to the UI callback;
-- waits up to 120 seconds for scanning;
-- handles optional 2FA.
-
-#### `sent_code_message(sent_code)`
-
-Converts Telethon delivery metadata into readable status text: active app, SMS,
-call, email, and other supported methods.
-
-#### `check_telegram_account(credentials)`
-
-Historical name. Verifies the user session and returns basic account identity
-from `get_me()`.
-
-### Local state helpers
-
-#### `load_json(path, default)`
-
-Reads a JSON runtime file and returns a default value on missing/invalid input.
-
-#### `save_json(path, value)`
-
-Writes JSON through a temporary file followed by `os.replace`, reducing the
-chance of partial files.
-
-#### `daily_hashtag()`
-
-Returns today's local date as `#YYYY_MM_DD`.
-
-#### `send_daily_hashtag_if_needed(client)`
-
-Checks persisted date state and sends the date marker when required.
-
-### Message conversion and cache
-
-#### `media_label(message)`
-
-Determines a readable media type from a Telethon message.
-
-#### `record_from_message(message)`
-
-Normalizes Telethon messages into dictionaries consumed by the UI.
-
-#### `save_message_records(records)`
-
-Writes the latest normalized records to `telegram_messages.json`.
-
-#### `get_telegram_messages(credentials, limit=30)`
-
-Reads the local message cache without a network request.
-
-#### `sync_telegram_messages(credentials, limit=30)`
-
-Loads the latest Saved Messages from Telegram and refreshes the local cache.
-
-### Message actions
-
-#### `send_to_telegram(credentials, text, image_path=None)`
-
-Sends the daily marker, optional image, and text parts to Saved Messages.
-
-#### `edit_telegram_message(credentials, record_id, text)`
-
-Validates message type/length, edits the Telegram message, and refreshes cache.
-
-#### `delete_telegram_message(credentials, record_id)`
-
-Deletes a Saved Message by ID and refreshes cache.
-
-## 19. Function Reference: UI Coordination
-
-### Authentication
-
-| Method | Purpose |
-| --- | --- |
-| `telegram_credentials()` | Reads API ID/hash/phone from settings |
-| `telegram_api_configured()` | Checks API ID and API hash |
-| `request_telegram_login_code()` | Starts phone code request |
-| `complete_telegram_login()` | Submits code or standalone 2FA password |
-| `start_telegram_qr_login()` | Starts QR flow |
-| `start_telegram_auth()` | Creates/configures `TelegramAuthWorker` |
-| `telegram_auth_succeeded()` | Resets progressive UI and checks connection |
-| `telegram_auth_failed()` | Shows error and reveals 2FA field when needed |
-| `telegram_qr_ready()` | Displays generated QR PNG |
-| `telegram_auth_finished()` | Releases worker |
-
-### Sending
-
-| Method | Purpose |
-| --- | --- |
-| `push_to_telegram()` | Reads text/image and starts send worker |
-| `telegram_send_finished()` | Marks split block green and updates cache |
-| `telegram_send_failed()` | Returns split status to idle and stores tooltip |
-| `telegram_worker_finished()` | Releases send worker |
-
-### Connection
-
-| Method | Purpose |
-| --- | --- |
-| `check_telegram_connection()` | Starts account/session verification |
-| `telegram_connection_succeeded()` | Sets global status green |
-| `telegram_connection_failed()` | Sets global status disconnected |
-| `telegram_check_finished()` | Releases check worker |
-
-### Manager
-
-| Method | Purpose |
-| --- | --- |
-| `open_telegram_manager()` | Opens manager and starts history sync |
-| `open_main_page()` | Returns to editor |
-| `refresh_telegram_messages()` | Chooses network sync or local cache |
-| `telegram_messages_loaded()` | Renders records |
-| `telegram_messages_load_failed()` | Falls back to cached records |
-| `update_telegram_message()` | Starts edit action |
-| `delete_telegram_message()` | Starts delete action |
-| `start_telegram_message_action()` | Creates action worker |
-
-## 20. Error Handling
-
-Common errors and expected UI behavior:
-
-| Error | Meaning | User action |
-| --- | --- | --- |
-| API ID/hash invalid | Telegram application credentials are wrong | Check `my.telegram.org` |
-| Phone invalid | Number format/account is invalid | Include country code |
-| Code invalid | Wrong login code | Re-enter the newest code |
-| Code expired | Code is too old | Request another code |
-| 2FA required | First login step succeeded | Enter Telegram cloud password |
-| Password invalid | Wrong cloud password | Check Telegram 2FA password |
-| QR expired | QR was not scanned in time | Generate another QR |
-| Flood wait | Too many Telegram requests | Wait for the reported duration |
-| Account not signed in | Session missing or revoked | Authenticate again |
-
-Errors are:
-
-- written to `data/app.log`;
-- shown in the authentication status label;
-- shown as manager operation status;
-- stored as a tooltip for split-send failures.
-
-## 21. Security Model
-
-### Most sensitive asset
-
-`data/telegram_user.session` is more sensitive than the API hash. Anyone with a
-valid session file may be able to use the authorized Telegram account.
-
-### Current protections
-
-- `data/` is ignored by Git;
-- explicit `*.session` patterns are ignored;
-- login code and 2FA password are not saved;
-- temporary JSON writes use replacement;
-- Telegram operations are serialized;
-- no credentials are hard-coded in source.
-
-### Current limitations
-
-- `api_hash` and phone are stored as plaintext in `save_settings.json`;
-- the session file is not encrypted by TextEdtor;
-- local message cache contains private Saved Messages text;
-- logs are plaintext.
-
-### Distribution checklist
-
-Before publishing source or a release:
-
-1. Verify `git status` contains no `data/` files.
-2. Never package the local `data/` directory.
-3. Never upload `telegram_user.session`.
-4. Never upload `save_settings.json`.
-5. Never upload `telegram_login.json`.
-6. Revoke unknown TextEdtor sessions from Telegram **Settings -> Devices**.
-7. Avoid sharing logs that contain personal operational details.
-
-## 22. Manual Verification Checklist
-
-### QR login
-
-1. Enter API ID/hash.
-2. Select `QR code`.
-3. Generate and scan QR.
-4. Enter cloud password if requested.
-5. Confirm green account status after restart.
-
-### Phone login
-
-1. Select `Phone and code`.
-2. Enter phone and request code.
-3. Confirm the code field appears.
-4. Enter code and sign in.
-5. Complete 2FA if requested.
-
-### Sending
-
-1. Split text.
-2. Send a text-only block.
-3. Confirm yellow then green status.
-4. Add an image and send again.
-5. Confirm both appear in Saved Messages.
-6. Confirm the daily hashtag appears only once.
-
-### Manager
-
-1. Open Telegram manager.
-2. Confirm up to 30 current Saved Messages.
-3. Verify text/media previews.
-4. Edit a text message.
-5. Edit a media caption.
-6. Delete a message.
-7. Restart and verify history reloads from Telegram.
-
-## 23. External Documentation
-
-- Telegram API ID and hash: <https://core.telegram.org/api/obtaining_api_id>
-- Telethon documentation: <https://docs.telethon.dev/>
-- Telegram active sessions: Telegram **Settings -> Devices**
+- [Telegram application credentials](https://core.telegram.org/api/obtaining_api_id)
+- [Telethon client reference](https://docs.telethon.dev/en/stable/modules/client.html) — the live documentation may describe a newer version than the project's pinned dependency.

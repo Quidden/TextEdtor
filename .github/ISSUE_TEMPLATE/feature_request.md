@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement
+about: Suggest an improvement to TextEdtor
 title: "[Feature] "
 labels: enhancement
 assignees: ""
@@ -8,13 +8,18 @@ assignees: ""
 
 ## Problem
 
-What problem would this feature solve?
+Describe the task that is difficult today and the affected area: text preparation, images, Telegram sign-in/sending, Saved Messages manager, or packaging.
 
 ## Proposal
 
-Describe the feature or improvement.
+Describe the desired behavior from the user's perspective. Include the screen or control where it should happen.
 
-## Notes
+## Example Workflow
 
-Add examples, screenshots, or extra context if useful.
+Give a short before/after example using sample content.
 
+## Alternatives and Context
+
+Describe any current workaround and relevant platform/build details. Check the [documentation](https://github.com/Quidden/TextEdtor/tree/master/docs) for existing features and limitations.
+
+Use synthetic text and redact any personal or Telegram account data in examples/screenshots.
