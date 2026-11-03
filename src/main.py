@@ -14,6 +14,7 @@ from texteditor.ui.main_window_widget import \
     MainWindowW
 from texteditor.services.app_logger import \
     setup_logging
+from texteditor.ui.themes import apply_theme, appearance_settings
 from texteditor import \
     __version__
 
@@ -38,15 +39,21 @@ class MainWindow(QMainWindow):
         self.resize(1440, 820)
         self.widget = MainWindowW()
         self.setCentralWidget(self.widget)
+        self.setMinimumSize(280, 245)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, "widget"):
+            # Hysteresis keeps the layout stable close to the compact boundary.
+            compact = self.width() < 620 or self.height() < 420
+            if self.widget.compact:
+                compact = self.width() < 680 or self.height() < 460
+            self.widget.set_compact(compact)
 
 
 app = QApplication(sys.argv)
 setup_logging()
-style_path = resource_path("texteditor", "ui", "app_style.qss")
-if style_path.exists():
-    style = style_path.read_text(encoding="utf-8")
-    check_mark_path = (style_path.parent / "check_mark.svg").as_posix()
-    app.setStyleSheet(style.replace("CHECK_MARK_ICON", check_mark_path))
+apply_theme(appearance_settings().value("theme", "paper"))
 window = MainWindow()
 window.show()
 sys.exit(app.exec())

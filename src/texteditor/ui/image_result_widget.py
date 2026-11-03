@@ -69,6 +69,17 @@ class ImageResult(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.box)
+        self.main_layout = main_layout
+
+    def set_compact(self, enabled):
+        self.main_layout.setContentsMargins(0, 0, 0, 0) if enabled else self.main_layout.setContentsMargins(9, 9, 9, 9)
+        self.box.setTitle("" if enabled else "Convert")
+        self.boxImage.setTitle("" if enabled else "Image result")
+        self.dropZone.setMinimumSize(140, 90) if enabled else self.dropZone.setMinimumSize(180, 130)
+        self.box.setStyleSheet("QGroupBox { margin-top: 0; padding: 4px; }" if enabled else "")
+        self.boxImage.setStyleSheet("QGroupBox { margin-top: 0; padding: 4px; border: none; }" if enabled else "")
+        for button in (self.resButton, self.pasteButton):
+            button.setStyleSheet("padding: 6px 8px;" if enabled else "")
 
     def _ensure_image_dir(self):
         os.makedirs(IMAGE_DIR, exist_ok=True)
@@ -172,7 +183,7 @@ class DropZone(QLabel):
 
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setText("Drop image here")
-        self.setMinimumSize(240, 160)
+        self.setMinimumSize(180, 130)
         self.setObjectName("DropZone")
         self.setAcceptDrops(True)
 
